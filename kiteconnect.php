@@ -3,7 +3,7 @@
 /**
 Kite Connect API client for PHP -- [kite.trade](https://kite.trade) | [Download from Github](https://github.com/rainmattertech/phpkiteconnect)
 
-Rainmatter (c) 2016
+Rainmatter (c) 2016. Version 1.2
 
 License
 -------
