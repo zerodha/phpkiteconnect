@@ -124,6 +124,7 @@ class KiteConnect {
 
 		"market.instruments.all" => "/instruments",
 		"market.instruments" => "/instruments/{exchange}",
+		"market.historical" => "/instruments/historical/{instrument_token}/{interval}",
 		"market.quote" => "/instruments/{exchange}/{tradingsymbol}",
 		"market.trigger_range" => "/instruments/{exchange}/{tradingsymbol}/trigger_range"
 	];
@@ -455,6 +456,52 @@ class KiteConnect {
 	public function quote($exchange, $tradingsymbol) {
 		return $this->_get("market.quote", ["exchange" => $exchange,
 											"tradingsymbol" => $tradingsymbol]);
+	}
+
+	/**
+	 * Retrieve historical data (candles) for an instrument.
+	 * 
+	 * Although the actual response JSON from the API does not have field
+	 * names such has 'open', 'high' etc., this functin call structures
+	 * the data into an array of objects with field names. For example:
+	 * <pre>stdClass Object
+	 *	(
+ 	 *		[date] => 2016-05-02T09:15:00+0530
+ 	 *		[open] => 1442
+ 	 *		[high] => 1446.45
+ 	 *		[low] => 1416.15
+ 	 *		[close] => 1420.55
+ 	 *		[volume] => 205976
+		)
+	 * </pre>
+	 * 
+	 * @param int $instrument_token	The instrument identifier
+	 * 									(retrieved from the instruments()) call.
+	 * @param string $from				From date (yyyy-mm-dd).
+	 * @param string $to				To date (yyyy-mm-dd).
+	 * @param string $interval			Candle interval (minute, day, 5 minute etc.)
+	 * @return array
+	 */
+	public function historical($instrument_token, $from, $to, $interval) {
+		$data = $this->_get("market.historical", ["instrument_token" => $instrument_token,
+												"from" => $from,
+												"to" => $to,
+												"interval" => $interval]);
+
+		$records = [];
+		foreach($data->candles as $j) {
+			$r = new stdclass;
+			$r->date = $j[0];
+			$r->open = $j[1];
+			$r->high = $j[2];
+			$r->low = $j[3];
+			$r->close = $j[4];
+			$r->volume = $j[5];
+
+			$records[] = $r;
+		}
+
+		return $records;
 	}
 
 	/**
