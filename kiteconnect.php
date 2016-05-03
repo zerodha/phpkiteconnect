@@ -597,9 +597,10 @@ class KiteConnect {
 		}
 
 		// Prepare the payload.
+		$payload = http_build_query($params);
 		$options = [
 			"method"  => $method,
-			"content" => http_build_query($params),
+			"content" => $payload,
 			"ignore_errors" => true,
 
 			"header" => "Accept-Language: en-US,en;q=0.8\r\n" .
@@ -610,6 +611,8 @@ class KiteConnect {
 
 		if($method != "GET") {
 			$options["header"] .= "Content-type: application/x-www-form-urlencoded\r\n";
+		} else {
+			$url .= "?" . $payload;
 		}
 
 		$context  = stream_context_create(["http" => $options]);
