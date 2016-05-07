@@ -55,3 +55,8 @@ Download `kiteconnect.php` and `include()` it in your application.
 ```
 
 Refer to the [PHP client documentation](https://kite.trade/docs/phpkiteconnect/) for the complete list of supported methods. 
+
+
+## Changelog
+- 2016-07-05	Added `$parent_order_id` to orderModify() and orderCancel() for multi-legged orders.
+

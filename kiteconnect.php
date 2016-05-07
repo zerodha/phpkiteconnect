@@ -282,13 +282,14 @@ class KiteConnect {
 	/**
 	 * Modify an open order.
 	 * 
-	 * @param type $order_id	ID of the open order to be modified.
-	 * @param type $params 		Order parameters to be modified.
-	 * @param type $variety 	Order variety of the order to be modified (regular, amo etc.).
+	 * @param type $order_id		ID of the open order to be modified.
+	 * @param type $parent_order_id	ID of the parent order (only for multi-legged orders like BO).
+	 * @param type $params 			Order parameters to be modified.
+	 * @param type $variety 		Order variety of the order to be modified (regular, amo etc.).
 	 * 
 	 * @return void
 	 */
-	public function orderModify($order_id, $params, $variety) {
+	public function orderModify($order_id, $parent_order_id=null, $params, $variety) {
 		$params["variety"] = $variety;
 
 		$defaults = [
@@ -308,6 +309,7 @@ class KiteConnect {
 		if($variety == "BO") {
 			return $this->_put("order_modify", [
 				"order_id" => $order_id,
+				"parent_order_id" => $parent_order_id,
 				"quantity" => $params["quantity"],
 				"price" => $params["price"],
 				"trigger_price" => $params["trigger_price"],
@@ -330,20 +332,28 @@ class KiteConnect {
 	/**
 	 * Cancel an open order.
 	 * 
-	 * @param type $order_id	ID of the open order to be cancelled.
-	 * @param type $variety		Order variety of the order to be modified (regular, amo etc.).
+	 * @param type $parent_order_id	ID of the parent order (only for multi-legged orders like BO).
+	 * @param type $order_id		ID of the open order to be cancelled.
+	 * @param type $variety			Order variety of the order to be modified (regular, amo etc.).
 	 * 
 	 * @return void
 	 */
-	public function orderCancel($order_id, $variety) {
+	public function orderCancel($order_id, $parent_order_id = null, $variety) {
 		return $this->_delete("orders.cancel",
-				["order_id" => $order_id, "variety" => $variety])
+				["order_id" => $order_id,
+				 "parent_order_id" => $parent_order_id,
+				 "variety" => $variety])
 				->order_id;
 	}
 
+	/**
+	 * Get the list of all orders placed for the day.
+	 * 
+	 * @param string|null $order_id		If an order ID is given, only that particular
+	 * 									order's breakdown is returned.
+	 * @return type
+	 */
 	public function orders($order_id=null) {
-		/* Get the collection of orders from the orderbook. */
-
 		if($order_id) {
 			return $this->_get("orders.info", ["order_id" => $order_id]);
 		} else {
@@ -475,17 +485,17 @@ class KiteConnect {
 		)
 	 * </pre>
 	 * 
-	 * @param int $instrument_token	The instrument identifier
+	 * @param int $instrument_token		The instrument identifier
 	 * 									(retrieved from the instruments()) call.
-	 * @param string $from				From date (yyyy-mm-dd).
-	 * @param string $to				To date (yyyy-mm-dd).
+	 * @param string $date_from			From date (yyyy-mm-dd).
+	 * @param string $date_to			To date (yyyy-mm-dd).
 	 * @param string $interval			Candle interval (minute, day, 5 minute etc.)
 	 * @return array
 	 */
-	public function historical($instrument_token, $from, $to, $interval) {
+	public function historical($instrument_token, $date_from, $date_to, $interval) {
 		$data = $this->_get("market.historical", ["instrument_token" => $instrument_token,
-												"from" => $from,
-												"to" => $to,
+												"from" => $date_from,
+												"to" => $date_to,
 												"interval" => $interval]);
 
 		$records = [];
