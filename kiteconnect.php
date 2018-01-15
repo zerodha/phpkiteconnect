@@ -239,11 +239,11 @@ class KiteConnect {
 	 * the user who has authenticated.
 	 *
 	 * @param string $request_token 	Token obtained from the GET paramers after a successful login redirect
-	 * @param string $secret 			The API secret issued with the API key.
+	 * @param string $api_secret 			The API secret issued with the API key.
 	 * @return array
 	 */
-	public function generateSession($request_token, $secret) {
-		$checksum = hash("sha256", $this->api_key.$request_token.$secret);
+	public function generateSession($request_token, $api_secret) {
+		$checksum = hash("sha256", $this->api_key.$request_token.$api_secret);
 
 		$resp = $this->_post("api.validate", [
 			"request_token" => $request_token,
@@ -260,9 +260,7 @@ class KiteConnect {
 	/**
 	 * Kill the session by invalidating the access token.
 	 *
-	 * @param string|null $access_token Optional `access_token` to
-	 * 									invalidate. Default is the
-	 * 									active `access_token`.
+	 * @param string|null $access_token Optional `access_token` to invalidate. Default is the active `access_token`.
 	 * @return none
 	 */
 	public function invalidateAccessToken($access_token = null) {
@@ -277,7 +275,7 @@ class KiteConnect {
 	/**
 	 * Get account balance and cash margin details for a particular segment.
 	 *
-	 * @param string $segment		The trading segment (eg: equity or commodity)
+	 * @param string|null $segment	Optional trading segment (eg: equity or commodity)
 	 * @return array
 	 */
 	public function getMargins($segment) {
@@ -287,71 +285,97 @@ class KiteConnect {
 	/**
 	 * Place an order.
 	 *
-	 * @param array $params			[Order parameters](https://kite.trade/docs/connect/v1/#placing-orders) (quantity, price etc.)
+	 * @param array $params	[Order parameters](https://kite.trade/docs/connect/v1/#placing-orders) (quantity, price etc.)
+	 * 				$params string 		"variety"  Order variety (ex. bo, co, amo, regular).
+	 * 				$params string 		"exchange" Exchange in which instrument is listed (NSE, BSE, NFO, BFO, CDS, MCX).
+	 * 				$params string 		"tradingsymbol" Tradingsymbol of the instrument (ex. RELIANCE, INFY).
+	 * 				$params string 		"transaction_type" Transaction type (BUY or SELL).
+	 * 				$params string 		"product" Product code (NRML, MIS, CNC).
+	 * 				$params string 		"order_type" Order type (NRML, SL, SL-M, MARKET).
+	 * 				$params int	   		"quantity" Order quantity
+	 * 				$params int|null	"disclosed_quantity" (optional) Disclosed quantity
+	 * 				$params float|null  "price" (optional) Order Price
+	 * 				$params float|null  "trigger_price" (optional) Trigger price
+	 * 				$params float|null  "squareoff" (optional) Square off value (only for bracket orders)
+	 * 				$params float|null  "stoploss" (optional) Stoploss value (only for bracket orders)
+	 * 				$params float|null  "trailing_stoploss" (optional) Trailing stoploss value (only for bracket orders)
+	 * 				$params float|null  "tag" (optional) Order tag
+	 * 				$params string|null "validity" (optional) Order validity (DAY, IOC).
 	 * @return string
 	 */
 	public function placeOrder($params) {
-		return $this->_post("orders.place", $params)->order_id;
+		return $this->_post("orders.place", $params);
 	}
 
 	/**
 	 * Modify an open order.
 	 *
-	 * @param type $order_id		ID of the open order to be modified.
-	 * @param type $parent_order_id	ID of the parent order (only for multi-legged orders like BO).
-	 * @param type $params 			Order parameters to be modified.
-	 * @param type $variety 		Order variety of the order to be modified (regular, amo etc.).
+	 * @param array $params	[Order modify parameters](https://kite.trade/docs/connect/v1/#modifying-orders).
+	 * 				$params string 		"variety"  Order variety (ex. bo, co, amo, regular).
+	 * 				$params string 		"order_id" Order id.
+	 * 				$params string 		"parent_order_id" (optional) Parent order id if its a multi legged order.
+	 * 				$params string 		"order_type" (optional) Order type (NRML, SL, SL-M, MARKET).
+	 * 				$params int	   		"quantity" (optional) Order quantity
+	 * 				$params int|null	"disclosed_quantity" (optional) Disclosed quantity
+	 * 				$params float|null  "price" (optional) Order Price
+	 * 				$params float|null  "trigger_price" (optional) Trigger price
+	 * 				$params string|null "validity" (optional) Order validity (DAY, IOC).
 	 *
 	 * @return void
 	 */
 	public function modifyOrder($params) {
-		return $this->_put("orders.modify", $params)["order_id"];
+		return $this->_put("orders.modify", $params);
 	}
 
 	/**
 	 * Cancel an open order.
 	 *
-	 * @param type $parent_order_id	ID of the parent order (only for multi-legged orders like BO).
-	 * @param type $order_id		ID of the open order to be cancelled.
-	 * @param type $variety			Order variety of the order to be modified (regular, amo etc.).
+	 * @param array $params	[Order cancel parameters](https://kite.trade/docs/connect/v1/#cancelling-orders)
+	 * 				$params string 		"variety"  Order variety (ex. bo, co, amo, regular).
+	 * 				$params string 		"order_id" Order id.
+	 * 				$params string 		"parent_order_id" (optional) Parent order id if its a multi legged order.
 	 *
 	 * @return void
 	 */
-	public function cancelOrder($order_id, $parent_order_id = null, $variety) {
-		return $this->_delete("orders.cancel",
-				["order_id" => $order_id,
-				 "parent_order_id" => $parent_order_id,
-				 "variety" => $variety])
-				->order_id;
+	public function cancelOrder($params) {
+		return $this->_delete("orders.cancel", $params);
+	}
+
+	/**
+	 * Exit an order.
+	 *
+	 * @param array $params	[Order cancel parameters](https://kite.trade/docs/connect/v1/#cancelling-orders)
+	 * 				$params string 		"variety"  Order variety (ex. bo, co, amo, regular).
+	 * 				$params string 		"order_id" Order id.
+	 * 				$params string 		"parent_order_id" (optional) Parent order id if its a multi legged order.
+	 *
+	 * @return void
+	 */
+	public function exitOrder($params) {
+		return $this->cancelOrder($params);
 	}
 
 	/**
 	 * Get the list of all orders placed for the day.
-	 *
-	 * @param string|null $order_id		If an order ID is given, only that particular
-	 * 									order's breakdown is returned.
-	 * @return type
+	 * @return array
 	 */
-	public function orders($order_id=null) {
-		if($order_id) {
-			return $this->_get("orders.info", ["order_id" => $order_id]);
-		} else {
-			return $this->_get("orders");
-		}
+	public function getOrders() {
+		return $this->_get("orders");
 	}
 
 	/**
-	 * Retreive the list of trades executed (all or ones under a particular order).
-	 *
-	 * An order can be executed in tranches based on market conditions.
-	 * These trades are individually recorded under an order.
-	 *
-	 * @param type $order_id	ID of the order (optional) whose trades
-	 * 							are to be retrieved. If no `order_id` is
-	 * 							specified, all trades for the day are returned.
+	 * Get history of the individual order.
 	 * @return array
 	 */
-	public function trades($order_id = null) {
+	public function getOrderHistory($order_id) {
+		return $this->_get("orders.info", ["order_id" => $order_id]);
+	}
+
+	/**
+	 * Retreive the list of trades executed.
+	 * @return array
+	 */
+	public function getTrades() {
 		if($order_id) {
 			return $this->_get("trades", ["order_id" => $order_id]);
 		} else {
@@ -360,11 +384,26 @@ class KiteConnect {
 	}
 
 	/**
+	 * Retreive the list of trades executed for a particular order.
+	 *
+	 * An order can be executed in tranches based on market conditions.
+	 * These trades are individually recorded under an order.
+	 *
+	 * @param string $order_id	ID of the order (optional) whose trades
+	 * 							are to be retrieved. If no `order_id` is
+	 * 							specified, all trades for the day are returned.
+	 * @return array
+	 */
+	public function getOrderTrades($order_id) {
+		return $this->_get("orders.trades", ["order_id" => $order_id]);
+	}
+
+	/**
 	 * Retrieve the list of positions
 	 *
 	 * @return array
 	 */
-	public function positions() {
+	public function getPositions() {
 		return $this->_get("portfolio.positions");
 	}
 
@@ -373,29 +412,24 @@ class KiteConnect {
 	 *
 	 * @return array
 	 */
-	public function holdings() {
+	public function getHoldings() {
 		return $this->_get("portfolio.holdings");
 	}
 
 	/**
 	 * Modify an open position's product type.
-	 * @param type $params	[Parameters](https://kite.trade/docs/connect/v1/#position-conversion)
-	 * 						describing the open position to be modified.
+	 * @param array $params	[Parameters](https://kite.trade/docs/connect/v1/#position-conversion) describing the open position to be modified.
+	 * 			   $param string "exchange" Exchange in which instrument is listed (NSE, BSE, NFO, BFO, CDS, MCX).
+	 * 			   $param string "tradingsymbol" Tradingsymbol of the instrument  (ex. RELIANCE, INFY).
+	 * 			   $param string "transaction_type" Transaction type (BUY or SELL).
+	 * 			   $param string "position_type" Position type (overnight, day).
+	 * 			   $param string "quantity" Position quantity
+	 * 			   $param string "old_product" Current product code (NRML, MIS, CNC).
+	 * 			   $param string "new_product" New Product code (NRML, MIS, CNC).
 	 * @return bool
 	 */
-	public function productModify($params) {
-		$defaults = [
-			"exchange" => null,
-			"tradingsymbol" => null,
-			"transaction_type" => null,
-			"position_type" => null,
-			"quantity" => null,
-			"old_product" => null,
-			"new_product" => null
-		];
-		$params = array_merge($defaults, $params);
-
-		return $this->_put("portfolio.positions.modify", $params);
+	public function convertPosition($params) {
+		return $this->_put("portfolio.positions.convert", $params);
 	}
 
 	/**
@@ -422,10 +456,10 @@ class KiteConnect {
 	 *	)
 	 * </pre>
 	 *
-	 * @param type|null $exchange	(Optional) Exchange.
+	 * @param string|null $exchange	(Optional) Exchange.
 	 * @return array
 	 */
-	public function instruments($exchange = null) {
+	public function getInstruments($exchange = null) {
 		if($exchange) {
 			$params = ["exchange" => $exchange];
 
@@ -436,16 +470,38 @@ class KiteConnect {
 	}
 
 	/**
-	 * Retrieve market quote and depth (bids and offers) for an instrument.
+	 * Retrieve quote and market depth for list of instruments.
 	 *
-	 * @param type $exchange
-	 * @param type $tradingsymbol
-	 * @return type
+	 * @param array instruments is a list of instruments, Instrument are in the format of `tradingsymbol:exchange`.
+	 * 	For example NSE:INFY
+	 * @return array
 	 */
-	public function quote($exchange, $tradingsymbol) {
-		return $this->_get("market.quote", ["exchange" => $exchange,
-											"tradingsymbol" => $tradingsymbol]);
+	public function getQuote($instruments) {
+		return $this->_get("market.quote", $instruments);
 	}
+
+	/**
+	 * Retrieve OHLC for list of instruments.
+	 *
+	 * @param array instruments is a list of instruments, Instrument are in the format of `tradingsymbol:exchange`.
+	 * 	For example NSE:INFY
+	 * @return array
+	 */
+	public function getOHLC($instruments) {
+		return $this->_get("market.quote.ohlc", $instruments);
+	}
+
+	/**
+	 * Retrieve LTP for list of instruments.
+	 *
+	 * @param array instruments is a list of instruments, Instrument are in the format of `tradingsymbol:exchange`.
+	 * 	For example NSE:INFY
+	 * @return array
+	 */
+	public function getLTP($instruments) {
+		return $this->_get("market.quote.ltp", $instruments);
+	}
+
 
 	/**
 	 * Retrieve historical data (candles) for an instrument.
@@ -461,21 +517,19 @@ class KiteConnect {
  	 *		[low] => 1416.15
  	 *		[close] => 1420.55
  	 *		[volume] => 205976
-		)
+	 *	)
 	 * </pre>
 	 *
-	 * @param int $instrument_token		The instrument identifier
-	 * 									(retrieved from the instruments()) call.
-	 * @param string $date_from			From date (yyyy-mm-dd).
-	 * @param string $date_to			To date (yyyy-mm-dd).
-	 * @param string $interval			Candle interval (minute, day, 5 minute etc.)
+	 * @param array $params - Historical data params
+	 * 				$params string "instrument_token" Instrument identifier (retrieved from the instruments()) call.
+	 * 				$params string|Date "from" From date (String in format of 'yyyy-mm-dd HH:MM:SS' or Date object).
+	 * 				$params string|Date "to" To date (String in format of 'yyyy-mm-dd HH:MM:SS' or Date object).
+	 * 				$params string "interval" candle interval (minute, day, 5 minute etc.)
+	 * 				$params bool "continuous" is a bool flag to get continuous data for futures and options instruments. Defaults to false.
 	 * @return array
 	 */
-	public function historical($instrument_token, $date_from, $date_to, $interval) {
-		$data = $this->_get("market.historical", ["instrument_token" => $instrument_token,
-												"from" => $date_from,
-												"to" => $date_to,
-												"interval" => $interval]);
+	public function getHistoricalData($params) {
+		$data = $this->_get("market.historical", $params);
 
 		$records = [];
 		foreach($data->candles as $j) {
