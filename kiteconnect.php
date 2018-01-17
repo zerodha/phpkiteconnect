@@ -254,6 +254,10 @@ class KiteConnect {
 			$this->setAccessToken($resp->access_token);
 		}
 
+		if(!empty($resp->last_time)) {
+			$resp->last_time = new DateTime($resp->last_time);
+		}
+
 		return $resp;
 	}
 
@@ -398,7 +402,7 @@ class KiteConnect {
 	 * @return array
 	 */
 	public function getOrders() {
-		return $this->_get("orders");
+		return $this->_format_response_array($this->_get("orders"));
 	}
 
 	/**
@@ -406,7 +410,7 @@ class KiteConnect {
 	 * @return array
 	 */
 	public function getOrderHistory($order_id) {
-		return $this->_get("orders.info", ["order_id" => $order_id]);
+		return $this->_format_response_array($this->_get("orders.info", ["order_id" => $order_id]));
 	}
 
 	/**
@@ -414,11 +418,7 @@ class KiteConnect {
 	 * @return array
 	 */
 	public function getTrades() {
-		if($order_id) {
-			return $this->_get("order.trades", ["order_id" => $order_id]);
-		} else {
-			return $this->_get("trades");
-		}
+		return $this->_format_response_array($this->_get("trades"));
 	}
 
 	/**
@@ -433,7 +433,7 @@ class KiteConnect {
 	 * @return array
 	 */
 	public function getOrderTrades($order_id) {
-		return $this->_get("orders.trades", ["order_id" => $order_id]);
+		return $this->_format_response_array($this->_get("orders.trades", ["order_id" => $order_id]));
 	}
 
 	/**
@@ -515,7 +515,7 @@ class KiteConnect {
 	 * @return array
 	 */
 	public function getQuote($instruments) {
-		return $this->_get("market.quote", $instruments);
+		return $this->_format_response($this->_get("market.quote", $instruments));
 	}
 
 	/**
@@ -625,10 +625,10 @@ class KiteConnect {
 	 */
 	public function getMFOrders($order_id=null) {
 		if ($order_id) {
-			return $this->_get("mf.order.info", ["order_id" => $order_id]);
+			return $this->_format_response($this->_get("mf.order.info", ["order_id" => $order_id]));
 		}
 
-		return $this->_get("mf.orders");
+		return $this->_format_response_array($this->_get("mf.orders"));
 	}
 
 	/**
@@ -671,10 +671,10 @@ class KiteConnect {
 	 */
 	public function getMFSIPS($sip_id = null) {
 		if ($sip_id) {
-			return $this->_get("mf.sip.info", ["sip_id" => $sip_id]);
+			return $this->_format_response($this->_get("mf.sip.info", ["sip_id" => $sip_id]));
 		}
 
-		return $this->_get("mf.sips");
+		return $this->_format_response_array($this->_get("mf.sips"));
 	}
 
 	/**
@@ -727,6 +727,32 @@ class KiteConnect {
 	 */
 	public function getMFInstruments() {
 		return $this->_parseMFInstrumentsCSV($this->_get("mf.instruments"));
+	}
+
+	/**
+	 * Format response array, For example datetime string to DateTime object
+	 */
+	private function _format_response($data) {
+		$fields = ["order_timestamp", "exchange_timestamp", "created", "last_instalment", "fill_timestamp", "timestamp", "last_trade_time"];
+		foreach($fields as $field) {
+			if ($data[$field] && strlen($data[$field]) == 19) {
+				$data[$field] = new DateTime($data[$field]);
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Format array of responses
+	 */
+	private function _format_response_array($data) {
+		$results = [];
+		foreach ($data as $item) {
+			array_push($results, $this->_format_response($item));
+		}
+
+		return $results;
 	}
 
 	/**
@@ -902,7 +928,7 @@ class KiteConnect {
 				$o->tick_size = floatval($o->tick_size);
 				$o->lot_size = floatval($o->lot_size);
 
-				if ($o->expiry && strlen($o->expiry) == 10) {
+				if (!empty($o->expiry) && strlen($o->expiry) == 10) {
 					$o->expiry = new DateTime($o->expiry);
 				}
 
@@ -944,7 +970,7 @@ class KiteConnect {
 				$o->purchase_allowed = boolval(intval($o->purchase_allowed));
 				$o->redemption_allowed = boolval(intval($o->redemption_allowed));
 
-				if ($o->last_price_date && strlen($o->last_price_date) == 10) {
+				if (!empty($o->last_price_date) && strlen($o->last_price_date) == 10) {
 					$o->last_price_date = new DateTime($o->last_price_date);
 				}
 
