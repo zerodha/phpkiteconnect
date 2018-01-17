@@ -781,16 +781,6 @@ class KiteConnect {
 	 * @return mixed					Array or object (deserialised JSON).
 	 */
 	private function _request($route, $method, $params=null) {
-		// Is there a token?
-		if($this->access_token) {
-			$params["access_token"] = $this->access_token;
-		}
-
-		// Override instance's API key if one is supplied in the params
-		if(!isset($params["api_key"])) {
-			$params["api_key"] = $this->api_key;
-		}
-
 		$uri = $this->_routes[$route];
 
 		// 'RESTful' URLs.
@@ -809,15 +799,21 @@ class KiteConnect {
 
 		// Prepare the payload.
 		$payload = http_build_query($params);
+		$headers = "Accept-Language: en-US,en;q=0.8\r\n" .
+					"Accept-Encoding: gzip, deflate\r\n" .
+					"Accept-Charset: UTF-8,*;q=0.5\r\n" .
+					"User-Agent: phpkiteconnect\r\n" .
+					"X-Kite-Version: 3\r\n";
+
+		if ($this->api_key && $this->access_token) {
+			$headers .= "Authorization: token " . $this->api_key . ":" . $this->access_token;
+		}
+
 		$options = [
 			"method"  => $method,
 			"content" => $payload,
 			"ignore_errors" => true,
-
-			"header" => "Accept-Language: en-US,en;q=0.8\r\n" .
-						"Accept-Encoding: gzip, deflate\r\n" .
-						"Accept-Charset:UTF-8,*;q=0.5\r\n" .
-						"User-Agent: phpkiteconnect\r\n"
+			"header" => $headers
 		];
 
 		if($method != "GET") {
