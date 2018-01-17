@@ -308,6 +308,14 @@ class KiteConnect {
 		return $this->_delete("api.token.renew.invalidate", ["refresh_token" => $refresh_token]);
 	}
 
+	/**
+	 * Get user profile.
+	 *
+	 * @return array
+	 */
+	public function getProfile() {
+		return $this->_get("user.profile");
+	}
 
 	/**
 	 * Get account balance and cash margin details for a particular segment.
