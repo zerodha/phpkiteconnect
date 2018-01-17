@@ -355,7 +355,7 @@ class KiteConnect {
 	 * @return string
 	 */
 	public function placeOrder($params) {
-		return $this->_post("orders.place", $params);
+		return $this->_post("order.place", $params);
 	}
 
 	/**
@@ -375,7 +375,7 @@ class KiteConnect {
 	 * @return void
 	 */
 	public function modifyOrder($params) {
-		return $this->_put("orders.modify", $params);
+		return $this->_put("order.modify", $params);
 	}
 
 	/**
@@ -389,7 +389,7 @@ class KiteConnect {
 	 * @return void
 	 */
 	public function cancelOrder($params) {
-		return $this->_delete("orders.cancel", $params);
+		return $this->_delete("order.cancel", $params);
 	}
 
 	/**
@@ -419,7 +419,7 @@ class KiteConnect {
 	 * @return array
 	 */
 	public function getOrderHistory($order_id) {
-		return $this->_format_response_array($this->_get("orders.info", ["order_id" => $order_id]));
+		return $this->_format_response_array($this->_get("order.info", ["order_id" => $order_id]));
 	}
 
 	/**
@@ -442,7 +442,7 @@ class KiteConnect {
 	 * @return array
 	 */
 	public function getOrderTrades($order_id) {
-		return $this->_format_response_array($this->_get("orders.trades", ["order_id" => $order_id]));
+		return $this->_format_response_array($this->_get("order.trades", ["order_id" => $order_id]));
 	}
 
 	/**
