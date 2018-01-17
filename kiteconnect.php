@@ -906,6 +906,10 @@ class KiteConnect {
 				$o->tick_size = floatval($o->tick_size);
 				$o->lot_size = floatval($o->lot_size);
 
+				if ($o->expiry && strlen($o->expiry) == 10) {
+					$o->expiry = new DateTime($o->expiry);
+				}
+
 				$records[] = $o;
 			}
 		}
@@ -935,13 +939,18 @@ class KiteConnect {
 				// Combine header columns + values to an associative array
 				// and then to an object;
 				$o = (object) array_combine($head, $cols);
-				$o->redemption_allowed = intVal($o->redemption_allowed);
 				$o->minimum_purchase_amount = floatval($o->minimum_purchase_amount);
 				$o->purchase_amount_multiplier = floatval($o->purchase_amount_multiplier);
-				$o->additional_purchase_multiple = floatval($o->additional_purchase_multiple);
+				$o->minimum_additional_purchase_amount = floatval($o->minimum_additional_purchase_amount);
 				$o->minimum_redemption_quantity = floatval($o->minimum_redemption_quantity);
 				$o->redemption_quantity_multiplier = floatval($o->redemption_quantity_multiplier);
 				$o->last_price = floatval($o->last_price);
+				$o->purchase_allowed = boolval(intval($o->purchase_allowed));
+				$o->redemption_allowed = boolval(intval($o->redemption_allowed));
+
+				if ($o->last_price_date && strlen($o->last_price_date) == 10) {
+					$o->last_price_date = new DateTime($o->last_price_date);
+				}
 
 				$records[] = $o;
 			}
