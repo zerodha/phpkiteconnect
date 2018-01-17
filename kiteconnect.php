@@ -618,7 +618,7 @@ class KiteConnect {
 	 * @param string $transaction_type Transaction type
 	 * @return array
 	 */
-	public function triggerRange($exchange, $tradingsymbol, $transaction_type) {
+	public function getTriggerRange($exchange, $tradingsymbol, $transaction_type) {
 		return $this->_get("market.trigger_range",
 							["exchange" => $exchange,
 							"tradingsymbol" => $tradingsymbol,
