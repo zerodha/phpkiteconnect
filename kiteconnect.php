@@ -101,6 +101,7 @@ class KiteConnect {
 	// override this by passing the `root` parameter during initialisation.
 	private $_root = "https://api.kite.trade";
 	private static $_login = "https://kite.trade/connect/login";
+	private static $_date_fields = ["order_timestamp", "exchange_timestamp", "created", "last_instalment", "fill_timestamp", "timestamp", "last_trade_time"];
 
 	// API route map.
 	private $_routes = [
@@ -755,14 +756,14 @@ class KiteConnect {
 		return $this->_parseMFInstrumentsCSV($this->_get("mf.instruments"));
 	}
 
+
 	/**
 	 * Format response array, For example datetime string to DateTime object
 	 */
 	private function _format_response($data) {
-		$fields = ["order_timestamp", "exchange_timestamp", "created", "last_instalment", "fill_timestamp", "timestamp", "last_trade_time"];
-		foreach($fields as $field) {
-			if ($data[$field] && strlen($data[$field]) == 19) {
-				$data[$field] = new DateTime($data[$field]);
+		foreach(self::$_date_fields as $field) {
+			if (isset($data->$field) && strlen($data->$field) == 19) {
+				$data->$field = new DateTime($data->$field);
 			}
 		}
 
