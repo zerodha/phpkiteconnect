@@ -54,16 +54,16 @@ Getting started
 	print_r($kite->getPositions());
 
 	// Place order.
-	$order_id = $kite->placeOrder([
+	$o = $kite->placeOrder([
 		"tradingsymbol" => "INFY",
 		"exchange" => "NSE",
 		"quantity" => 1,
 		"transaction_type" => "BUY",
 		"order_type" => "MARKET",
 		"product" => "NRML"
-	], "regular")["order_id"];
+	], "regular");
 
-	echo "Order id is ".$order_id;
+	echo "Order id is ".$o->order_id;
 </pre>
 
 A typical web application
@@ -108,7 +108,6 @@ class KiteConnect {
         "api.token" => "/session/token",
         "api.token.invalidate" => "/session/token",
         "api.token.renew" => "/session/refresh_token",
-        "api.token.renew.invalidate" => "/session/refresh_token",
         "user.profile" => "/user/profile",
         "user.margins" => "/user/margins",
         "user.margins.segment" => "/user/margins/{segment}",
@@ -252,12 +251,12 @@ class KiteConnect {
 			"checksum" => $checksum
 		]);
 
-		if(!empty($resp->access_token)) {
+		if($resp->access_token) {
 			$this->setAccessToken($resp->access_token);
 		}
 
-		if(!empty($resp->last_time)) {
-			$resp->last_time = new DateTime($resp->last_time);
+		if($resp->login_time) {
+			$resp->login_time = new DateTime($resp->login_time);
 		}
 
 		return $resp;
@@ -851,7 +850,7 @@ class KiteConnect {
 		}
 
 		// Prepare the payload.
-		$payload = http_build_query($params);
+		$payload = http_build_query($params ? $params : []);
 		$headers = "Accept-Language: en-US,en;q=0.8\r\n" .
 					"Accept-Encoding: gzip, deflate\r\n" .
 					"Accept-Charset: UTF-8,*;q=0.5\r\n" .
