@@ -269,11 +269,14 @@ class KiteConnect {
 	 * @return none
 	 */
 	public function invalidateAccessToken($access_token = null) {
-		if($access_token) {
-			$this->setAccessToken($access_token);
+		if(!$access_token) {
+			$access_token = $this->access_token;
 		}
 
-		return $this->_delete("api.token.invalidate");
+		return $this->_delete("api.token.invalidate", [
+			"access_token" => $this->$access_token,
+			"api_key" => $this->api_key
+		]);
 	}
 
 	/**
@@ -307,7 +310,10 @@ class KiteConnect {
 	 * @return none
 	 */
 	public function invalidateRefreshToken($refresh_token) {
-		return $this->_delete("api.token.renew.invalidate", ["refresh_token" => $refresh_token]);
+		return $this->_delete("api.token.invalidate", [
+			"refresh_token" => $refresh_token,
+			"api_key" => $this->api_key
+		]);
 	}
 
 	/**
