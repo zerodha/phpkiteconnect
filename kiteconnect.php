@@ -336,8 +336,8 @@ class KiteConnect {
 	/**
 	 * Place an order.
 	 *
+	 * @param string $variety			"variety"  Order variety (ex. bo, co, amo, regular).
 	 * @param array $params	[Order parameters](https://kite.trade/docs/connect/v3/orders/#regular-order-parameters)
-	 * 				$params string 		"variety"  Order variety (ex. bo, co, amo, regular).
 	 * 				$params string 		"exchange" Exchange in which instrument is listed (NSE, BSE, NFO, BFO, CDS, MCX).
 	 * 				$params string 		"tradingsymbol" Tradingsymbol of the instrument (ex. RELIANCE, INFY).
 	 * 				$params string 		"transaction_type" Transaction type (BUY or SELL).
@@ -354,16 +354,17 @@ class KiteConnect {
 	 * 				$params string|null "validity" (Optional) Order validity (DAY, IOC).
 	 * @return string
 	 */
-	public function placeOrder($params) {
+	public function placeOrder($variety, $params) {
+		$params["variety"] = $variety;
 		return $this->_post("order.place", $params);
 	}
 
 	/**
 	 * Modify an open order.
 	 *
+	 * @param string $variety			"variety"  Order variety (ex. bo, co, amo, regular).
+	 * @param string $order_id			"order_id" Order id.
 	 * @param array $params	[Order modify parameters](https://kite.trade/docs/connect/v3/orders/#regular-order-parameters_1).
-	 * 				$params string 		"variety"  Order variety (ex. bo, co, amo, regular).
-	 * 				$params string 		"order_id" Order id.
 	 * 				$params string 		"parent_order_id" (Optional) Parent order id if its a multi legged order.
 	 * 				$params string 		"order_type" (Optional) Order type (NRML, SL, SL-M, MARKET).
 	 * 				$params int	   		"quantity" (Optional) Order quantity
@@ -374,21 +375,30 @@ class KiteConnect {
 	 *
 	 * @return void
 	 */
-	public function modifyOrder($params) {
+	public function modifyOrder($variety, $order_id, $params) {
+		$params["variety"] = $variety;
+		$params["order_id"] = $order_id;
 		return $this->_put("order.modify", $params);
 	}
 
 	/**
 	 * Cancel an open order.
 	 *
+	 * @param string $variety			"variety"  Order variety (ex. bo, co, amo, regular).
+	 * @param string $order_id			"order_id" Order id.
 	 * @param array $params	[Order cancel parameters](https://kite.trade/docs/connect/v3/orders/#cancelling-orders)
-	 * 				$params string 		"variety"  Order variety (ex. bo, co, amo, regular).
-	 * 				$params string 		"order_id" Order id.
 	 * 				$params string 		"parent_order_id" (Optional) Parent order id if its a multi legged order.
 	 *
 	 * @return void
 	 */
-	public function cancelOrder($params) {
+	public function cancelOrder($variety, $order_id, $params=null) {
+		if (!$params) {
+			$params = [];
+		}
+
+		$params["variety"] = $variety;
+		$params["order_id"] = $order_id;
+
 		return $this->_delete("order.cancel", $params);
 	}
 
@@ -575,27 +585,27 @@ class KiteConnect {
 	 * 				$params bool "continuous" is a bool flag to get continuous data for futures and options instruments. Defaults to false.
 	 * @return array
 	 */
-	public function getHistoricalData($params) {
-		$updated_params = [
-			"instrument_token" => $params["instrument_token"],
-			"interval" => $params["interval"]
+	public function getHistoricalData($instrument_token, $interval, $from, $to, $continuous = false) {
+		$params = [
+			"instrument_token" => $instrument_token,
+			"interval" => $interval
 		];
 
-		if ($params["from"] instanceof DateTime) {
-			$updated_params["from"] = $params["from"].format("Y-m-d H:i:s");
+		if ($from instanceof DateTime) {
+			$params["from"] = $from.format("Y-m-d H:i:s");
 		}
 
-		if ($params["to"] instanceof DateTime) {
-			$updated_params["to"] = $params["to"].format("Y-m-d H:i:s");
+		if ($to instanceof DateTime) {
+			$params["to"] = $to.format("Y-m-d H:i:s");
 		}
 
-		if ($params["continuous"]) {
-			$updated_params["continuous"] = 1;
+		if (empty($params["continuous"]) || $continuous == false) {
+			$params["continuous"] = 0;
 		} else {
-			$updated_params["continuous"] = 0;
+			$params["continuous"] = 1;
 		}
 
-		$data = $this->_get("market.historical", $updated_params);
+		$data = $this->_get("market.historical", $params);
 
 		$records = [];
 		foreach($data->candles as $j) {
@@ -706,8 +716,8 @@ class KiteConnect {
 	/**
 	 * Place an mutual fund order.
 	 *
+	 * @param string					Mutual fund SIP ID.
 	 * @param array $params	[Mutual fund SIP modify parameters](https://kite.trade/docs/connect/v1/#orders30)
-	 * 				$param string 		"sip_id" SIP ID.
 	 * 				$param float 		"amount" Amount worth of units to purchase. Not applicable on SELLs
 	 * 				$param int|null 	"instalments" (Optional) Number of instalments to trigger. If set to -1, instalments are triggered at fixed intervals until the SIP is cancelled
 	 * 				$param string|null 	"frequency" (Optional) Order frequency. weekly, monthly, or quarterly.
@@ -715,7 +725,8 @@ class KiteConnect {
 	 * 				$param string|null 	"status" (Optional) Pause or unpause an SIP (active or paused).
 	 * @return string
 	 */
-	public function modifyMFSIP($params) {
+	public function modifyMFSIP($sip_id, $params) {
+		$params["sip_id"] = $sip_id;
 		return $this->_put("mf.sip.modify", $params);
 	}
 
