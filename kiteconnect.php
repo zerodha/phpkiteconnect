@@ -268,12 +268,11 @@ class KiteConnect {
 	 * @return none
 	 */
 	public function invalidateAccessToken($access_token = null) {
-		$params = [];
 		if($access_token) {
-			$params = ["access_token" => $access_token];
+			$this->setAccessToken($access_token);
 		}
 
-		return $this->_delete("api.token.invalidate", $params);
+		return $this->_delete("api.token.invalidate");
 	}
 
 	/**
