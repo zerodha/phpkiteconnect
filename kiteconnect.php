@@ -859,7 +859,7 @@ class KiteConnect {
 					"X-Kite-Version: 3\r\n";
 
 		if ($this->api_key && $this->access_token) {
-			$headers .= "Authorization: token " . $this->api_key . ":" . $this->access_token;
+			$headers .= "Authorization: token " . $this->api_key . ":" . $this->access_token . "\r\n";
 		}
 
 		$options = [
