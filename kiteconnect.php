@@ -246,6 +246,7 @@ class KiteConnect {
 		$checksum = hash("sha256", $this->api_key.$request_token.$api_secret);
 
 		$resp = $this->_post("api.token", [
+			"api_key" => $this->api_key,
 			"request_token" => $request_token,
 			"checksum" => $checksum
 		]);
@@ -287,6 +288,7 @@ class KiteConnect {
 		$checksum = hash("sha256", $this->api_key.$refresh_token.$api_secret);
 
 		$resp = $this->_post("api.token.renew", [
+			"api_key" => $this->api_key,
 			"refresh_token" => $refresh_token,
 			"checksum" => $checksum
 		]);
