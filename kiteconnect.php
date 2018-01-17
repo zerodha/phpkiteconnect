@@ -941,6 +941,10 @@ class KiteConnect {
 		$head = [];
 		for($n=0; $n<count($lines); $n++) {
 			if($cols = @str_getcsv($lines[$n])) {
+				if(count($cols) < 5) {
+					continue;
+				}
+
 				// First line is the header.
 				if($n === 0) {
 					$head = $cols;
@@ -979,6 +983,10 @@ class KiteConnect {
 		$head = [];
 		for($n=0; $n<count($lines); $n++) {
 			if($cols = @str_getcsv($lines[$n])) {
+				if(count($cols) < 5) {
+					continue;
+				}
+
 				// First line is the header.
 				if($n === 0) {
 					$head = $cols;
