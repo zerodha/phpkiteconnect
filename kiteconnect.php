@@ -102,6 +102,7 @@ class KiteConnect {
 	private $_root = "https://api.kite.trade";
 	private static $_login = "https://kite.trade/connect/login";
 	private static $_date_fields = ["order_timestamp", "exchange_timestamp", "created", "last_instalment", "fill_timestamp", "timestamp", "last_trade_time"];
+	const _version = 3.0;
 
 	// API route map.
 	private $_routes = [
@@ -854,7 +855,7 @@ class KiteConnect {
 		$headers = "Accept-Language: en-US,en;q=0.8\r\n" .
 					"Accept-Encoding: gzip, deflate\r\n" .
 					"Accept-Charset: UTF-8,*;q=0.5\r\n" .
-					"User-Agent: phpkiteconnect\r\n" .
+					"User-Agent: phpkiteconnect/".self::_version."\r\n" .
 					"X-Kite-Version: 3\r\n";
 
 		if ($this->api_key && $this->access_token) {
