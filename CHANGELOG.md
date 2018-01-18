@@ -42,9 +42,6 @@ API method name changes
 
 Params and other changes
 ========================
-- `placeOrder` method takes all the params as array including `variety`
-- `modifyOrder` method takes all the params as array including `variety` and `order_id`
-- `cancelOrder` method takes all the params as array
 - `convertPosition` method takes all the params as array
 - `getHistoricalData` method takes all the params as array
 - [Changes in `generateSession` response structure](https://kite.trade/docs/connect/v3/user/#response-attributes)
