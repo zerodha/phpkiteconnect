@@ -410,7 +410,7 @@ class KiteConnect {
 	}
 
 	/**
-	 * Exit an order.
+	 * Exit a BO or CO.
 	 *
 	 * @param array $params	[Order cancel parameters](https://kite.trade/docs/connect/v3/orders/#cancelling-orders)
 	 * 				$params string 		"variety"  Order variety (ex. bo, co, amo, regular).
@@ -419,8 +419,8 @@ class KiteConnect {
 	 *
 	 * @return void
 	 */
-	public function exitOrder($params) {
-		return $this->cancelOrder($params);
+	public function exitOrder($variety, $order_id, $params) {
+		return $this->cancelOrder($variety, $order_id, $params);
 	}
 
 	/**
