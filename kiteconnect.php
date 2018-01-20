@@ -541,7 +541,7 @@ class KiteConnect {
 	 * @return array
 	 */
 	public function getQuote($instruments) {
-		return $this->_format_response($this->_get("market.quote", $instruments));
+		return $this->_format_response($this->_get("market.quote", ["i" => $instruments]));
 	}
 
 	/**
@@ -552,7 +552,7 @@ class KiteConnect {
 	 * @return array
 	 */
 	public function getOHLC($instruments) {
-		return $this->_get("market.quote.ohlc", $instruments);
+		return $this->_get("market.quote.ohlc", ["i" => $instruments]);
 	}
 
 	/**
@@ -563,7 +563,7 @@ class KiteConnect {
 	 * @return array
 	 */
 	public function getLTP($instruments) {
-		return $this->_get("market.quote.ltp", $instruments);
+		return $this->_get("market.quote.ltp", ["i" => $instruments]);
 	}
 
 
@@ -852,6 +852,8 @@ class KiteConnect {
 
 		// Prepare the payload.
 		$payload = http_build_query($params ? $params : []);
+		$cleaned_payload = preg_replace("/%5B(\d+?)%5D/", "", $payload);
+
 		$headers = "Accept-Language: en-US,en;q=0.8\r\n" .
 					"Accept-Encoding: gzip, deflate\r\n" .
 					"Accept-Charset: UTF-8,*;q=0.5\r\n" .
@@ -864,7 +866,7 @@ class KiteConnect {
 
 		$options = [
 			"method"  => $method,
-			"content" => $payload,
+			"content" => $cleaned_payload,
 			"ignore_errors" => true,
 			"header" => $headers
 		];
@@ -872,7 +874,7 @@ class KiteConnect {
 		if($method != "GET") {
 			$options["header"] .= "Content-type: application/x-www-form-urlencoded\r\n";
 		} else {
-			$url .= "?" . $payload;
+			$url .= "?" . $cleaned_payload;
 		}
 
 		$context  = stream_context_create(["http" => $options]);
