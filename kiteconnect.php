@@ -854,7 +854,8 @@ class KiteConnect {
 		$payload = http_build_query($params ? $params : []);
 		$cleaned_payload = preg_replace("/%5B(\d+?)%5D/", "", $payload);
 
-		$headers = "Accept-Language: en-US,en;q=0.8\r\n" .
+		$headers = "Content-type: application/x-www-form-urlencoded\r\n".
+					"Accept-Language: en-US,en;q=0.8\r\n" .
 					"Accept-Encoding: gzip, deflate\r\n" .
 					"Accept-Charset: UTF-8,*;q=0.5\r\n" .
 					"User-Agent: phpkiteconnect/".self::_version."\r\n" .
@@ -871,9 +872,7 @@ class KiteConnect {
 			"header" => $headers
 		];
 
-		if($method != "GET") {
-			$options["header"] .= "Content-type: application/x-www-form-urlencoded\r\n";
-		} else {
+		if($method == "GET" || $method == "DELETE") {
 			$url .= "?" . $cleaned_payload;
 		}
 
