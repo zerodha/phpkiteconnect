@@ -902,7 +902,7 @@ class KiteConnect {
 			}
 
 			return $json->data;
-		} else if(strpos($headers["Content-Type"], "text/csv") !== false) {
+		} else if(strpos($headers["content-type"], "text/csv") !== false) {
 			return $result;
 		} else {
 			throw new DataException("Invalid response format");
@@ -977,13 +977,13 @@ class KiteConnect {
 		if($headers && is_array($headers) && count($headers) > 0) {
 			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 		}
-		
+
 		// Prepare the payload.
 		$payload = null;
 		if($payload = http_build_query($params && is_array($params) ? $params : [])) {
 			$payload = preg_replace("/%5B(\d+?)%5D/", "", $payload);
 		}
-		
+
 		if($method == "POST" || $method == "PUT") {
 			curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
 		} else if($method == "GET" || $method == "DELETE") {
@@ -992,7 +992,7 @@ class KiteConnect {
 
 		// Request URL.
 		curl_setopt($ch, CURLOPT_URL, $url);
-		
+
 		// Routine to collect the response headers.
 		$response_headers = [];
 		curl_setopt($ch, CURLOPT_HEADERFUNCTION, function($curl, $header) use (&$response_headers) {
@@ -1013,7 +1013,7 @@ class KiteConnect {
 		});
 
 		$result = curl_exec($ch);
-		
+
 		// Request error.
 		if($error = curl_error($ch)) {
 			throw new NetworkException($error);
