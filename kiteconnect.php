@@ -830,6 +830,7 @@ class KiteConnect {
 	 * Make an HTTP request.
 	 *
 	 * @param string $route 			Route name mapped in self::$_routes.
+	 * @param string $method 			The HTTP method to send (GET, POST, PUT, DELETE).
 	 * @param array|null $params		Request parameters.
 	 * @return mixed					Array or object (deserialised JSON).
 	 */
@@ -851,55 +852,33 @@ class KiteConnect {
 		}
 
 		// Prepare the payload.
-		$payload = http_build_query($params ? $params : []);
-		$cleaned_payload = preg_replace("/%5B(\d+?)%5D/", "", $payload);
-
-		$headers = "Content-type: application/x-www-form-urlencoded\r\n".
-					"Accept-Language: en-US,en;q=0.8\r\n" .
-					"Accept-Encoding: gzip, deflate\r\n" .
-					"Accept-Charset: UTF-8,*;q=0.5\r\n" .
-					"User-Agent: phpkiteconnect/".self::_version."\r\n" .
-					"X-Kite-Version: 3\r\n";
+		$request_headers = ["Content-type: application/x-www-form-urlencoded",
+					"Accept-Encoding: gzip, deflate",
+					"Accept-Charset: UTF-8,*;q=0.5",
+					"User-Agent: phpkiteconnect/".self::_version,
+					"X-Kite-Version: 3"];
 
 		if ($this->api_key && $this->access_token) {
-			$headers .= "Authorization: token " . $this->api_key . ":" . $this->access_token . "\r\n";
+			$request_headers[] = "Authorization: token " . $this->api_key . ":" . $this->access_token;
 		}
 
-		$options = [
-			"method"  => $method,
-			"content" => $cleaned_payload,
-			"ignore_errors" => true,
-			"header" => $headers
-		];
-
-		if($method == "GET" || $method == "DELETE") {
-			$url .= "?" . $cleaned_payload;
+		// Make the HTTP request.
+		if(function_exists("curl_init")) {
+			$resp = $this->_curl($url, $method, $request_headers, $params);
+		} else {
+			trigger_error("The php curl module is not installed. Please isntall it for better performance.", E_USER_WARNING);
+			$resp = $this->_http_socket($url, $method, $request_headers, $params);
 		}
-
-		$context  = stream_context_create(["http" => $options]);
-		$result = @file_get_contents($url, false, $context);
-
-		// Request failed due to a network error.
-		if(!$result) {
-			$error = error_get_last();
-			throw new NetworkException($error["message"]);
-		}
+		$headers = $resp["headers"];
+		$result = $resp["body"];
 
 		if($this->debug) {
 			print("Response :" . $result . "\n");
 		}
 
-		// Parse the request headers.
-		$headers = $this->_parseHeaders($http_response_header);
-
-		// Content is gzipped. Uncompress.
-		if(isset($headers["Content-Encoding"]) && stristr($headers["Content-Encoding"], "gzip")) {
-			$result = gzdecode($result);
-		}
-
-		if(empty($headers["Content-Type"])) {
-			throw new DataException("Unknown Content-Type in response");
-		} else if(strpos($headers["Content-Type"], "application/json") !== false) {
+		if(empty($headers["content-type"])) {
+			throw new DataException("Unknown content-type in response");
+		} else if(strpos($headers["content-type"], "application/json") !== false) {
 			$json = @json_decode($result);
 			if(!$json) {
 				throw new DataException("Couldn't parse JSON response");
@@ -928,6 +907,121 @@ class KiteConnect {
 		} else {
 			throw new DataException("Invalid response format");
 		}
+	}
+
+	/**
+	 * Make an HTTP request using the PHP socket functions.
+	 *
+	 * @param string $url 				The full URL to retrieve
+	 * @param string $method 			The HTTP method to send (GET, POST, PUT, DELETE).
+	 * @param array|null $headers		Array of HTTP request headers to send.
+	 * @param array|null $params		Array of key=>value request parameters.
+	 * @return array					Returns an array with response "headers" and "body".
+	*/
+	private function _http_socket($url, $method, $headers, $params=null) {
+		// Prepare the payload.
+		$payload = http_build_query($params ? $params : []);
+		$payload = preg_replace("/%5B(\d+?)%5D/", "", $payload);
+
+		$request_headers = "";
+		if($headers && count($headers) > 0) {
+			$request_headers = implode("\r\n", $headers);
+		}
+
+		$options = [
+			"method"  => $method,
+			"content" => $payload,
+			"ignore_errors" => true,
+			"header" => $request_headers
+		];
+
+		if($method == "GET" || $method == "DELETE") {
+			$url .= "?" . $payload;
+		}
+
+		$context  = stream_context_create(["http" => $options]);
+		$result = @file_get_contents($url, false, $context);
+
+		// Request failed due to a network error.
+		if(!$result) {
+			$error = error_get_last();
+			throw new NetworkException($error["message"]);
+		}
+
+		$response_headers =  $this->_parseHeaders($http_response_header);
+
+		// Content is gzipped. Uncompress.
+		if(isset($response_headers["content-encoding"]) && stristr($response_headers["content-encoding"], "gzip")) {
+			$result = gzdecode($result);
+		}
+
+		return ["headers" => $response_headers, "body" => $result];
+	}
+
+	/**
+	 * Make an HTTP request using the PHP curl library.
+	 *
+	 * @param string $url 				The full URL to retrieve
+	 * @param string $method 			The HTTP method to send (GET, POST, PUT, DELETE).
+	 * @param array|null $headers		Array of HTTP request headers to send.
+	 * @param array|null $params		Array of key=>value request parameters.
+	 * @return array					Returns an array with response "headers" and "body".
+	 */
+	private function _curl($url, $method, $headers, $params=null) {
+		$ch = curl_init();
+
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_ENCODING , "gzip");
+
+		if($headers && is_array($headers) && count($headers) > 0) {
+			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+		}
+		
+		// Prepare the payload.
+		$payload = null;
+		if($payload = http_build_query($params && is_array($params) ? $params : [])) {
+			$payload = preg_replace("/%5B(\d+?)%5D/", "", $payload);
+		}
+		
+		if($method == "POST" || $method == "PUT") {
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+		} else if($method == "GET" || $method == "DELETE") {
+			$url .= "?" . $payload;
+		}
+
+		// Request URL.
+		curl_setopt($ch, CURLOPT_URL, $url);
+		
+		// Routine to collect the response headers.
+		$response_headers = [];
+		curl_setopt($ch, CURLOPT_HEADERFUNCTION, function($curl, $header) use (&$response_headers) {
+			$len = strlen($header);
+			$header = explode(':', $header, 2);
+			if (count($header) < 2) {
+				return $len;
+			}
+
+			$name = strtolower(trim($header[0]));
+			if (!array_key_exists($name, $response_headers)) {
+				$response_headers[$name] = trim($header[1]);
+			} else {
+				$response_headers[$name] = trim($header[1]);
+			}
+
+			return $len;
+		});
+
+		$result = curl_exec($ch);
+		
+		// Request error.
+		if($error = curl_error($ch)) {
+			throw new NetworkException($error);
+		}
+
+		$response_headers["status_code"] = intval(curl_getinfo($ch, CURLINFO_HTTP_CODE));
+
+		return ["headers" => $response_headers, "body" => $result];
 	}
 
 	/**
@@ -1029,7 +1123,7 @@ class KiteConnect {
 			$h = explode(":", $v, 2);
 
 			if(isset($h[1])) {
-				$head[trim($h[0])] = trim( $h[1] );
+				$head[strtolower(trim($h[0]))] = trim( $h[1] );
 			} else {
 				$head[] = $v;
 				if(preg_match("/HTTP\/[0-9\.]+\s+([0-9]+)/is", $v, $out)) {
