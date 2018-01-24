@@ -54,14 +54,14 @@ Getting started
 	print_r($kite->getPositions());
 
 	// Place order.
-	$o = $kite->placeOrder([
+	$o = $kite->placeOrder("regular", [
 		"tradingsymbol" => "INFY",
 		"exchange" => "NSE",
 		"quantity" => 1,
 		"transaction_type" => "BUY",
 		"order_type" => "MARKET",
 		"product" => "NRML"
-	], "regular");
+	]);
 
 	echo "Order id is ".$o->order_id;
 </pre>

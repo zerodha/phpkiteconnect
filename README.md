@@ -42,14 +42,14 @@ Download `kiteconnect.php` and `include()` it in your application.
 	print_r($kite->getPositions());
 
 	// Place order.
-	$order_id = $kite->placeOrder([
+	$order_id = $kite->placeOrder("regular", [
 		"tradingsymbol" => "INFY",
 		"exchange" => "NSE",
 		"quantity" => 1,
 		"transaction_type" => "BUY",
 		"order_type" => "MARKET",
 		"product" => "NRML"
-	], "regular")["order_id"];
+	])["order_id"];
 
 	echo "Order id is ".$order_id;
 ```
