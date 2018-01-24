@@ -905,7 +905,7 @@ class KiteConnect {
 		} else if(strpos($headers["content-type"], "text/csv") !== false) {
 			return $result;
 		} else {
-			throw new DataException("Invalid response format");
+			throw new DataException("Invalid response: ".$result, $headers["status_code"]);
 		}
 	}
 
