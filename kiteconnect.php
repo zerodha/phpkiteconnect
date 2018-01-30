@@ -257,7 +257,7 @@ class KiteConnect {
 		}
 
 		if($resp->login_time) {
-			$resp->login_time = new DateTime($resp->login_time);
+			$resp->login_time = new DateTime($resp->login_time, new DateTimeZone("Asia/Kolkata"));
 		}
 
 		return $resp;
@@ -617,7 +617,7 @@ class KiteConnect {
 		$records = [];
 		foreach($data->candles as $j) {
 			$r = new stdclass;
-			$r->date = new DateTime($j[0]);
+			$r->date = new DateTime($j[0], new DateTimeZone("Asia/Kolkata"));
 			$r->open = $j[1];
 			$r->high = $j[2];
 			$r->low = $j[3];
@@ -763,7 +763,7 @@ class KiteConnect {
 	private function _format_response($data) {
 		foreach(self::$_date_fields as $field) {
 			if (isset($data->$field) && strlen($data->$field) == 19) {
-				$data->$field = new DateTime($data->$field);
+				$data->$field = new DateTime($data->$field, new DateTimeZone("Asia/Kolkata"));
 			}
 		}
 
@@ -1055,7 +1055,7 @@ class KiteConnect {
 				$o->lot_size = floatval($o->lot_size);
 
 				if (!empty($o->expiry) && strlen($o->expiry) == 10) {
-					$o->expiry = new DateTime($o->expiry);
+					$o->expiry = new DateTime($o->expiry, new DateTimeZone("Asia/Kolkata"));
 				}
 
 				$records[] = $o;
@@ -1101,7 +1101,7 @@ class KiteConnect {
 				$o->redemption_allowed = boolval(intval($o->redemption_allowed));
 
 				if (!empty($o->last_price_date) && strlen($o->last_price_date) == 10) {
-					$o->last_price_date = new DateTime($o->last_price_date);
+					$o->last_price_date = new DateTime($o->last_price_date, new DateTimeZone("Asia/Kolkata"));
 				}
 
 				$records[] = $o;
