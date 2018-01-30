@@ -1,7 +1,10 @@
+> **NOTICE (Jan 2018): Upgrade to Kite Connect 3.0**
+> This repository is being phased and will be replaced soon by Kite Connect v3. Use the [kite3](https://github.com/zerodhatech/phpkiteconnect/tree/kite3) branch instead. Read the [announcement](https://kite.trade/forum/discussion/2998/upgrade-to-kite-connect-3-0) on the forum.
+
 # The Kite Connect API PHP client
 The official PHP client for communicating with the [Kite Connect API](https://kite.trade).
 
-Kite Connect is a set of REST-like APIs that expose many capabilities required to build a complete investment and trading platform. Execute orders in real time, manage user portfolio and more, with the simple HTTP API collection. 
+Kite Connect is a set of REST-like APIs that expose many capabilities required to build a complete investment and trading platform. Execute orders in real time, manage user portfolio and more, with the simple HTTP API collection.
 
 [Rainmatter](http://rainmatter.com) (c) 2016. Licensed under the MIT License.
 
@@ -54,7 +57,7 @@ Download `kiteconnect.php` and `include()` it in your application.
 	echo "Order id is ".$order_id;
 ```
 
-Refer to the [PHP client documentation](https://kite.trade/docs/phpkiteconnect/) for the complete list of supported methods. 
+Refer to the [PHP client documentation](https://kite.trade/docs/phpkiteconnect/) for the complete list of supported methods.
 
 
 ## Changelog
