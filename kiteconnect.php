@@ -541,7 +541,7 @@ class KiteConnect {
 	 * @return array
 	 */
 	public function getQuote($instruments) {
-		return $this->_format_response($this->_get("market.quote", ["i" => $instruments]));
+		return $this->_format_response_array($this->_get("market.quote", ["i" => $instruments]));
 	}
 
 	/**
