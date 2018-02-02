@@ -847,7 +847,7 @@ class KiteConnect {
 		$url = $this->_root.$uri;
 
 		if($this->debug) {
-			print("Request: " . $url . "\n");
+			print("Request: " . $method . " " . $url . "\n");
 			var_dump($params);
 		}
 
@@ -973,6 +973,7 @@ class KiteConnect {
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_ENCODING , "gzip");
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
 
 		if($headers && is_array($headers) && count($headers) > 0) {
 			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
