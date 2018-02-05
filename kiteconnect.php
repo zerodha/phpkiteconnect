@@ -145,7 +145,7 @@ class KiteConnect {
         "market.instruments" => "/instruments/{exchange}",
         "market.margins" => "/margins/{segment}",
         "market.historical" => "/instruments/historical/{instrument_token}/{interval}",
-        "market.trigger_range" => "/instruments/{exchange}/{tradingsymbol}/trigger_range",
+        "market.trigger_range" => "/instruments/trigger_range/{transaction_type}",
 
         "market.quote" => "/quote",
         "market.quote.ohlc" => "/quote/ohlc",
@@ -637,11 +637,9 @@ class KiteConnect {
 	 * @param string $transaction_type Transaction type
 	 * @return array
 	 */
-	public function getTriggerRange($exchange, $tradingsymbol, $transaction_type) {
+	public function getTriggerRange($transaction_type, $instruments) {
 		return $this->_get("market.trigger_range",
-							["exchange" => $exchange,
-							"tradingsymbol" => $tradingsymbol,
-							"transaction_type" => $transaction_type]);
+							["i" => $instruments, "transaction_type" => strtolower($transaction_type)]);
 	}
 
 	/**
