@@ -775,8 +775,8 @@ class KiteConnect {
 	 */
 	private function _format_response_array($data) {
 		$results = [];
-		foreach ($data as $item) {
-			array_push($results, $this->_format_response($item));
+		foreach ($data as $k => $item) {
+			$results[$k] =  $this->_format_response($item);
 		}
 
 		return $results;
