@@ -595,15 +595,17 @@ class KiteConnect {
 	public function getHistoricalData($instrument_token, $interval, $from, $to, $continuous = false) {
 		$params = [
 			"instrument_token" => $instrument_token,
-			"interval" => $interval
+			"interval" => $interval,
+			"from" => $from,
+			"to" => $to
 		];
 
 		if ($from instanceof DateTime) {
-			$params["from"] = $from.format("Y-m-d H:i:s");
+			$params["from"] = $from->format("Y-m-d H:i:s");
 		}
 
 		if ($to instanceof DateTime) {
-			$params["to"] = $to.format("Y-m-d H:i:s");
+			$params["to"] = $to->format("Y-m-d H:i:s");
 		}
 
 		if (empty($params["continuous"]) || $continuous == false) {
