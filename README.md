@@ -52,6 +52,7 @@ Download `kiteconnect.php` and `include()` it in your application.
 	])["order_id"];
 
 	echo "Order id is ".$order_id;
+?>
 ```
 
 Refer to the [PHP client documentation](https://kite.trade/docs/phpkiteconnect/v3) for the complete list of supported methods.

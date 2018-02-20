@@ -3,7 +3,7 @@
 /**
 Kite Connect API client for PHP -- [kite.trade](https://kite.trade) | [Download from Github](https://github.com/zerodhatech/phpkiteconnect)
 
-Zerodha Technology (c) 2017. Version 3.0.1b
+Zerodha Technology (c) 2018. Version 3.0.1b
 
 License
 -------git
@@ -64,6 +64,7 @@ Getting started
 	]);
 
 	echo "Order id is ".$o->order_id;
+?>
 </pre>
 
 A typical web application
