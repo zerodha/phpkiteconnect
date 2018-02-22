@@ -413,10 +413,10 @@ class KiteConnect {
 	/**
 	 * Exit a BO or CO.
 	 *
+	 * @param string $variety			"variety"  Order variety (ex. bo, co, amo, regular).
+	 * @param string $order_id			"order_id" Order id.
 	 * @param array $params	[Order cancel parameters](https://kite.trade/docs/connect/v3/orders/#cancelling-orders)
-	 * 				$params string 		"variety"  Order variety (ex. bo, co, amo, regular).
-	 * 				$params string 		"order_id" Order id.
-	 * 				$params string 		"parent_order_id" (optional) Parent order id if its a multi legged order.
+	 * 				$params string 		"parent_order_id" (Optional) Parent order id if its a multi legged order.
 	 *
 	 * @return void
 	 */
