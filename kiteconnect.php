@@ -334,7 +334,7 @@ class KiteConnect {
 	 * @return array
 	 */
 	public function getMargins($segment = null) {
-		if ($segment) {
+		if (!$segment) {
 			return $this->_get("user.margins");
 		}
 
