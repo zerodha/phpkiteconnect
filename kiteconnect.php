@@ -276,7 +276,7 @@ class KiteConnect {
 		}
 
 		return $this->_delete("api.token.invalidate", [
-			"access_token" => $this->$access_token,
+			"access_token" => $access_token,
 			"api_key" => $this->api_key
 		]);
 	}
