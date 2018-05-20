@@ -3,10 +3,10 @@
 /**
 Kite Connect API client for PHP -- [kite.trade](https://kite.trade) | [Download from Github](https://github.com/zerodhatech/phpkiteconnect)
 
-Zerodha Technology (c) 2017. Version 3.0.0
+Zerodha Technology (c) 2018. Version 3.0.2b
 
 License
--------
+-------git
 Kite Connect PHP library is licensed under the MIT License.
 
 The library
@@ -20,7 +20,7 @@ data (WebSockets), and more, with the simple HTTP API collection.
 This module provides an easy to use abstraction over the HTTP APIs.
 The HTTP calls have been converted to methods and their JSON responses
 are returned as native PHP structures, for example, dicts, lists, bools etc.
-See the **[Kite Connect API documentation](https://kite.trade/docs/connect/v1/)**
+See the **[Kite Connect API documentation](https://kite.trade/docs/connect/v3/)**
 for the complete list of APIs, supported parameters and values, and response formats.
 
 Getting started
@@ -36,7 +36,7 @@ Getting started
 	// after the auth flow redirect by redirecting the
 	// user to $kite->login_url()
 	try {
-		$user = $kite->requestAccessToken("request_token_obtained", "your_api_secret");
+		$user = $kite->generateSession("request_token_obtained", "your_api_secret");
 
 		echo "Authentication successful. \n";
 		print_r($user);
@@ -51,19 +51,20 @@ Getting started
 
 	// Get the list of positions.
 	echo "Positions: \n";
-	print_r($kite->positions());
+	print_r($kite->getPositions());
 
 	// Place order.
-	$order_id = $kite->orderPlace([
+	$o = $kite->placeOrder("regular", [
 		"tradingsymbol" => "INFY",
 		"exchange" => "NSE",
 		"quantity" => 1,
 		"transaction_type" => "BUY",
 		"order_type" => "MARKET",
 		"product" => "NRML"
-	], "regular");
+	]);
 
-	echo "Order id is ".$order_id;
+	echo "Order id is ".$o->order_id;
+?>
 </pre>
 
 A typical web application
@@ -101,13 +102,14 @@ class KiteConnect {
 	// override this by passing the `root` parameter during initialisation.
 	private $_root = "https://api.kite.trade";
 	private static $_login = "https://kite.trade/connect/login";
+	private static $_date_fields = ["order_timestamp", "exchange_timestamp", "created", "last_instalment", "fill_timestamp", "timestamp", "last_trade_time"];
+	const _version = 3.0;
 
 	// API route map.
 	private $_routes = [
         "api.token" => "/session/token",
         "api.token.invalidate" => "/session/token",
         "api.token.renew" => "/session/refresh_token",
-        "api.token.renew.invalidate" => "/session/refresh_token",
         "user.profile" => "/user/profile",
         "user.margins" => "/user/margins",
         "user.margins.segment" => "/user/margins/{segment}",
@@ -123,7 +125,7 @@ class KiteConnect {
 
         "portfolio.positions" => "/portfolio/positions",
         "portfolio.holdings" => "/portfolio/holdings",
-        "portfolio.positions.modify" => "/portfolio/positions",
+        "portfolio.positions.convert" => "/portfolio/positions",
 
         # MF api endpoints
         "mf.orders" => "/mf/orders",
@@ -144,7 +146,7 @@ class KiteConnect {
         "market.instruments" => "/instruments/{exchange}",
         "market.margins" => "/margins/{segment}",
         "market.historical" => "/instruments/historical/{instrument_token}/{interval}",
-        "market.trigger_range" => "/instruments/{exchange}/{tradingsymbol}/trigger_range",
+        "market.trigger_range" => "/instruments/trigger_range/{transaction_type}",
 
         "market.quote" => "/quote",
         "market.quote.ohlc" => "/quote/ohlc",
@@ -178,7 +180,7 @@ class KiteConnect {
 	 *								a request to complete before it fails.
 	 * @return void
 	 */
-	public function __construct($api_key, $access_token = null, $root = null, $debug = false, $timeout = 7, $micro_cache = true) {
+	public function __construct($api_key, $access_token = null, $root = null, $debug = false, $timeout = 7) {
 		$this->api_key = $api_key;
 		$this->access_token = $access_token;
 		$this->debug = $debug;
@@ -238,15 +240,61 @@ class KiteConnect {
 	 * response contains not just the `access_token`, but metadata for
 	 * the user who has authenticated.
 	 *
-	 * @param string $request_token 	Token obtained from the GET paramers after a successful login redirect
-	 * @param string $secret 			The API secret issued with the API key.
+	 * @param string $request_token 	Token obtained from the GET params after a successful login redirect
+	 * @param string $api_secret 		The API secret issued with the API key.
 	 * @return array
 	 */
-	public function generateSession($request_token, $secret) {
-		$checksum = hash("sha256", $this->api_key.$request_token.$secret);
+	public function generateSession($request_token, $api_secret) {
+		$checksum = hash("sha256", $this->api_key.$request_token.$api_secret);
 
-		$resp = $this->_post("api.validate", [
+		$resp = $this->_post("api.token", [
+			"api_key" => $this->api_key,
 			"request_token" => $request_token,
+			"checksum" => $checksum
+		]);
+
+		if($resp->access_token) {
+			$this->setAccessToken($resp->access_token);
+		}
+
+		if($resp->login_time) {
+			$resp->login_time = new DateTime($resp->login_time, new DateTimeZone("Asia/Kolkata"));
+		}
+
+		return $resp;
+	}
+
+	/**
+	 * Kill the session by invalidating the access token.
+	 *
+	 * @param string|null $access_token (Optional) `access_token` to invalidate. Default is the active `access_token`.
+	 * @return none
+	 */
+	public function invalidateAccessToken($access_token = null) {
+		if(!$access_token) {
+			$access_token = $this->access_token;
+		}
+
+		return $this->_delete("api.token.invalidate", [
+			"access_token" => $access_token,
+			"api_key" => $this->api_key
+		]);
+	}
+
+	/**
+	 * Renew access token by active refresh token.
+	 * Renewed access token is implicitly set.
+	 *
+	 * @param string $refresh_token 	Token obtained from previous successful login.
+	 * @param string $api_secret 		The API secret issued with the API key.
+	 * @return array
+	 */
+	public function renewAccessToken($refresh_token, $api_secret) {
+		$checksum = hash("sha256", $this->api_key.$refresh_token.$api_secret);
+
+		$resp = $this->_post("api.token.renew", [
+			"api_key" => $this->api_key,
+			"refresh_token" => $refresh_token,
 			"checksum" => $checksum
 		]);
 
@@ -258,105 +306,161 @@ class KiteConnect {
 	}
 
 	/**
-	 * Kill the session by invalidating the access token.
+	 * Invalidate refresh token.
 	 *
-	 * @param string|null $access_token Optional `access_token` to
-	 * 									invalidate. Default is the
-	 * 									active `access_token`.
+	 * @param string $refresh_token Refresh token to invalidate.
 	 * @return none
 	 */
-	public function invalidateAccessToken($access_token = null) {
-		$params = [];
-		if($access_token) {
-			$params = ["access_token" => $access_token];
-		}
+	public function invalidateRefreshToken($refresh_token) {
+		return $this->_delete("api.token.invalidate", [
+			"refresh_token" => $refresh_token,
+			"api_key" => $this->api_key
+		]);
+	}
 
-		return $this->_delete("api.invalidate", $params);
+	/**
+	 * Get user profile.
+	 *
+	 * @return array
+	 */
+	public function getProfile() {
+		return $this->_get("user.profile");
 	}
 
 	/**
 	 * Get account balance and cash margin details for a particular segment.
 	 *
-	 * @param string $segment		The trading segment (eg: equity or commodity)
+	 * @param string|null $segment	(Optional) trading segment (eg: equity or commodity)
 	 * @return array
 	 */
-	public function getMargins($segment) {
-		return $this->_get("user.margins", ["segment" => $segment]);
+	public function getMargins($segment = null) {
+		if (!$segment) {
+			return $this->_get("user.margins");
+		}
+
+		return $this->_get("user.margins.segment", ["segment" => $segment]);
 	}
 
 	/**
 	 * Place an order.
 	 *
-	 * @param array $params			[Order parameters](https://kite.trade/docs/connect/v1/#placing-orders) (quantity, price etc.)
+	 * @param string $variety			"variety"  Order variety (ex. bo, co, amo, regular).
+	 * @param array $params	[Order parameters](https://kite.trade/docs/connect/v3/orders/#regular-order-parameters)
+	 * 				$params string 		"exchange" Exchange in which instrument is listed (NSE, BSE, NFO, BFO, CDS, MCX).
+	 * 				$params string 		"tradingsymbol" Tradingsymbol of the instrument (ex. RELIANCE, INFY).
+	 * 				$params string 		"transaction_type" Transaction type (BUY or SELL).
+	 * 				$params string 		"product" Product code (NRML, MIS, CNC).
+	 * 				$params string 		"order_type" Order type (NRML, SL, SL-M, MARKET).
+	 * 				$params int	   		"quantity" Order quantity
+	 * 				$params int|null	"disclosed_quantity" (Optional) Disclosed quantity
+	 * 				$params float|null  "price" (Optional) Order Price
+	 * 				$params float|null  "trigger_price" (Optional) Trigger price
+	 * 				$params float|null  "squareoff" (Optional) Square off value (only for bracket orders)
+	 * 				$params float|null  "stoploss" (Optional) Stoploss value (only for bracket orders)
+	 * 				$params float|null  "trailing_stoploss" (Optional) Trailing stoploss value (only for bracket orders)
+	 * 				$params float|null  "tag" (Optional) Order tag
+	 * 				$params string|null "validity" (Optional) Order validity (DAY, IOC).
 	 * @return string
 	 */
-	public function placeOrder($params) {
-		return $this->_post("orders.place", $params)->order_id;
+	public function placeOrder($variety, $params) {
+		$params["variety"] = $variety;
+		return $this->_post("order.place", $params);
 	}
 
 	/**
 	 * Modify an open order.
 	 *
-	 * @param type $order_id		ID of the open order to be modified.
-	 * @param type $parent_order_id	ID of the parent order (only for multi-legged orders like BO).
-	 * @param type $params 			Order parameters to be modified.
-	 * @param type $variety 		Order variety of the order to be modified (regular, amo etc.).
+	 * @param string $variety			"variety"  Order variety (ex. bo, co, amo, regular).
+	 * @param string $order_id			"order_id" Order id.
+	 * @param array $params	[Order modify parameters](https://kite.trade/docs/connect/v3/orders/#regular-order-parameters_1).
+	 * 				$params string 		"parent_order_id" (Optional) Parent order id if its a multi legged order.
+	 * 				$params string 		"order_type" (Optional) Order type (NRML, SL, SL-M, MARKET).
+	 * 				$params int	   		"quantity" (Optional) Order quantity
+	 * 				$params int|null	"disclosed_quantity" (Optional) Disclosed quantity
+	 * 				$params float|null  "price" (Optional) Order Price
+	 * 				$params float|null  "trigger_price" (Optional) Trigger price
+	 * 				$params string|null "validity" (Optional) Order validity (DAY, IOC).
 	 *
 	 * @return void
 	 */
-	public function modifyOrder($params) {
-		return $this->_put("orders.modify", $params)["order_id"];
+	public function modifyOrder($variety, $order_id, $params) {
+		$params["variety"] = $variety;
+		$params["order_id"] = $order_id;
+		return $this->_put("order.modify", $params);
 	}
 
 	/**
 	 * Cancel an open order.
 	 *
-	 * @param type $parent_order_id	ID of the parent order (only for multi-legged orders like BO).
-	 * @param type $order_id		ID of the open order to be cancelled.
-	 * @param type $variety			Order variety of the order to be modified (regular, amo etc.).
+	 * @param string $variety			"variety"  Order variety (ex. bo, co, amo, regular).
+	 * @param string $order_id			"order_id" Order id.
+	 * @param array $params	[Order cancel parameters](https://kite.trade/docs/connect/v3/orders/#cancelling-orders)
+	 * 				$params string 		"parent_order_id" (Optional) Parent order id if its a multi legged order.
 	 *
 	 * @return void
 	 */
-	public function cancelOrder($order_id, $parent_order_id = null, $variety) {
-		return $this->_delete("orders.cancel",
-				["order_id" => $order_id,
-				 "parent_order_id" => $parent_order_id,
-				 "variety" => $variety])
-				->order_id;
+	public function cancelOrder($variety, $order_id, $params=null) {
+		if (!$params) {
+			$params = [];
+		}
+
+		$params["variety"] = $variety;
+		$params["order_id"] = $order_id;
+
+		return $this->_delete("order.cancel", $params);
+	}
+
+	/**
+	 * Exit a BO or CO.
+	 *
+	 * @param string $variety			"variety"  Order variety (ex. bo, co, amo, regular).
+	 * @param string $order_id			"order_id" Order id.
+	 * @param array $params	[Order cancel parameters](https://kite.trade/docs/connect/v3/orders/#cancelling-orders)
+	 * 				$params string 		"parent_order_id" (Optional) Parent order id if its a multi legged order.
+	 *
+	 * @return void
+	 */
+	public function exitOrder($variety, $order_id, $params) {
+		return $this->cancelOrder($variety, $order_id, $params);
 	}
 
 	/**
 	 * Get the list of all orders placed for the day.
-	 *
-	 * @param string|null $order_id		If an order ID is given, only that particular
-	 * 									order's breakdown is returned.
-	 * @return type
+	 * @return array
 	 */
-	public function orders($order_id=null) {
-		if($order_id) {
-			return $this->_get("orders.info", ["order_id" => $order_id]);
-		} else {
-			return $this->_get("orders");
-		}
+	public function getOrders() {
+		return $this->_format_response_array($this->_get("orders"));
 	}
 
 	/**
-	 * Retreive the list of trades executed (all or ones under a particular order).
+	 * Get history of the individual order.
+	 * @return array
+	 */
+	public function getOrderHistory($order_id) {
+		return $this->_format_response_array($this->_get("order.info", ["order_id" => $order_id]));
+	}
+
+	/**
+	 * Retrieve the list of trades executed.
+	 * @return array
+	 */
+	public function getTrades() {
+		return $this->_format_response_array($this->_get("trades"));
+	}
+
+	/**
+	 * Retrieve the list of trades executed for a particular order.
 	 *
 	 * An order can be executed in tranches based on market conditions.
 	 * These trades are individually recorded under an order.
 	 *
-	 * @param type $order_id	ID of the order (optional) whose trades
+	 * @param string $order_id	ID of the order (optional) whose trades
 	 * 							are to be retrieved. If no `order_id` is
 	 * 							specified, all trades for the day are returned.
 	 * @return array
 	 */
-	public function trades($order_id = null) {
-		if($order_id) {
-			return $this->_get("trades", ["order_id" => $order_id]);
-		} else {
-			return $this->_get("trades");
-		}
+	public function getOrderTrades($order_id) {
+		return $this->_format_response_array($this->_get("order.trades", ["order_id" => $order_id]));
 	}
 
 	/**
@@ -364,7 +468,7 @@ class KiteConnect {
 	 *
 	 * @return array
 	 */
-	public function positions() {
+	public function getPositions() {
 		return $this->_get("portfolio.positions");
 	}
 
@@ -373,29 +477,24 @@ class KiteConnect {
 	 *
 	 * @return array
 	 */
-	public function holdings() {
+	public function getHoldings() {
 		return $this->_get("portfolio.holdings");
 	}
 
 	/**
 	 * Modify an open position's product type.
-	 * @param type $params	[Parameters](https://kite.trade/docs/connect/v1/#position-conversion)
-	 * 						describing the open position to be modified.
+	 * @param array $params	[Parameters](https://kite.trade/docs/connect/v3/portfolio/#position-conversion) describing the open position to be modified.
+	 * 			   $param string "exchange" Exchange in which instrument is listed (NSE, BSE, NFO, BFO, CDS, MCX).
+	 * 			   $param string "tradingsymbol" Tradingsymbol of the instrument  (ex. RELIANCE, INFY).
+	 * 			   $param string "transaction_type" Transaction type (BUY or SELL).
+	 * 			   $param string "position_type" Position type (overnight, day).
+	 * 			   $param string "quantity" Position quantity
+	 * 			   $param string "old_product" Current product code (NRML, MIS, CNC).
+	 * 			   $param string "new_product" New Product code (NRML, MIS, CNC).
 	 * @return bool
 	 */
-	public function productModify($params) {
-		$defaults = [
-			"exchange" => null,
-			"tradingsymbol" => null,
-			"transaction_type" => null,
-			"position_type" => null,
-			"quantity" => null,
-			"old_product" => null,
-			"new_product" => null
-		];
-		$params = array_merge($defaults, $params);
-
-		return $this->_put("portfolio.positions.modify", $params);
+	public function convertPosition($params) {
+		return $this->_put("portfolio.positions.convert", $params);
 	}
 
 	/**
@@ -422,30 +521,52 @@ class KiteConnect {
 	 *	)
 	 * </pre>
 	 *
-	 * @param type|null $exchange	(Optional) Exchange.
+	 * @param string|null $exchange	(Optional) Exchange.
 	 * @return array
 	 */
-	public function instruments($exchange = null) {
+	public function getInstruments($exchange = null) {
 		if($exchange) {
 			$params = ["exchange" => $exchange];
 
-			return $this->_get("market.instruments", $params);
+			return $this->_parseInstrumentsCSV($this->_get("market.instruments", $params));
 		} else {
-			return $this->_get("market.instruments.all");
+			return $this->_parseInstrumentsCSV($this->_get("market.instruments.all"));
 		}
 	}
 
 	/**
-	 * Retrieve market quote and depth (bids and offers) for an instrument.
+	 * Retrieve quote and market depth for list of instruments.
 	 *
-	 * @param type $exchange
-	 * @param type $tradingsymbol
-	 * @return type
+	 * @param array instruments is a list of instruments, Instrument are in the format of `tradingsymbol:exchange`.
+	 * 	For example NSE:INFY
+	 * @return array
 	 */
-	public function quote($exchange, $tradingsymbol) {
-		return $this->_get("market.quote", ["exchange" => $exchange,
-											"tradingsymbol" => $tradingsymbol]);
+	public function getQuote($instruments) {
+		return $this->_format_response_array($this->_get("market.quote", ["i" => $instruments]));
 	}
+
+	/**
+	 * Retrieve OHLC for list of instruments.
+	 *
+	 * @param array instruments is a list of instruments, Instrument are in the format of `tradingsymbol:exchange`.
+	 * 	For example NSE:INFY
+	 * @return array
+	 */
+	public function getOHLC($instruments) {
+		return $this->_get("market.quote.ohlc", ["i" => $instruments]);
+	}
+
+	/**
+	 * Retrieve LTP for list of instruments.
+	 *
+	 * @param array instruments is a list of instruments, Instrument are in the format of `tradingsymbol:exchange`.
+	 * 	For example NSE:INFY
+	 * @return array
+	 */
+	public function getLTP($instruments) {
+		return $this->_get("market.quote.ltp", ["i" => $instruments]);
+	}
+
 
 	/**
 	 * Retrieve historical data (candles) for an instrument.
@@ -461,26 +582,45 @@ class KiteConnect {
  	 *		[low] => 1416.15
  	 *		[close] => 1420.55
  	 *		[volume] => 205976
-		)
+	 *	)
 	 * </pre>
 	 *
-	 * @param int $instrument_token		The instrument identifier
-	 * 									(retrieved from the instruments()) call.
-	 * @param string $date_from			From date (yyyy-mm-dd).
-	 * @param string $date_to			To date (yyyy-mm-dd).
-	 * @param string $interval			Candle interval (minute, day, 5 minute etc.)
+	 * @param array $params - Historical data params
+	 * 				$params string "instrument_token" Instrument identifier (retrieved from the instruments()) call.
+	 * 				$params string|DateTime "from" From date (String in format of 'yyyy-mm-dd HH:MM:SS' or Date object).
+	 * 				$params string|DateTime "to" To date (String in format of 'yyyy-mm-dd HH:MM:SS' or Date object).
+	 * 				$params string "interval" candle interval (minute, day, 5 minute etc.)
+	 * 				$params bool "continuous" is a bool flag to get continuous data for futures and options instruments. Defaults to false.
 	 * @return array
 	 */
-	public function historical($instrument_token, $date_from, $date_to, $interval) {
-		$data = $this->_get("market.historical", ["instrument_token" => $instrument_token,
-												"from" => $date_from,
-												"to" => $date_to,
-												"interval" => $interval]);
+	public function getHistoricalData($instrument_token, $interval, $from, $to, $continuous = false) {
+		$params = [
+			"instrument_token" => $instrument_token,
+			"interval" => $interval,
+			"from" => $from,
+			"to" => $to
+		];
+
+		if ($from instanceof DateTime) {
+			$params["from"] = $from->format("Y-m-d H:i:s");
+		}
+
+		if ($to instanceof DateTime) {
+			$params["to"] = $to->format("Y-m-d H:i:s");
+		}
+
+		if (empty($params["continuous"]) || $continuous == false) {
+			$params["continuous"] = 0;
+		} else {
+			$params["continuous"] = 1;
+		}
+
+		$data = $this->_get("market.historical", $params);
 
 		$records = [];
 		foreach($data->candles as $j) {
 			$r = new stdclass;
-			$r->date = $j[0];
+			$r->date = new DateTime($j[0], new DateTimeZone("Asia/Kolkata"));
 			$r->open = $j[1];
 			$r->high = $j[2];
 			$r->low = $j[3];
@@ -495,24 +635,160 @@ class KiteConnect {
 
 	/**
 	 * Retrieve the buy/sell trigger range for Cover Orders.
-	 * @param type $exchange
-	 * @param type $tradingsymbol
-	 * @param type $transaction_type
-	 * @return type
+	 * @param string $exchange Exchange
+	 * @param string $tradingsymbol	Tradingsymbol
+	 * @param string $transaction_type Transaction type
+	 * @return array
 	 */
-	public function triggerRange($exchange, $tradingsymbol, $transaction_type) {
+	public function getTriggerRange($transaction_type, $instruments) {
 		return $this->_get("market.trigger_range",
-							["exchange" => $exchange,
-							"tradingsymbol" => $tradingsymbol,
-							"transaction_type" => $transaction_type]);
+							["i" => $instruments, "transaction_type" => strtolower($transaction_type)]);
+	}
+
+	/**
+	 * Get the list of MF orders / order info for individual order.
+	 * @param string|null $order_id (Optional) Order id.
+	 * @return array
+	 */
+	public function getMFOrders($order_id=null) {
+		if ($order_id) {
+			return $this->_format_response($this->_get("mf.order.info", ["order_id" => $order_id]));
+		}
+
+		return $this->_format_response_array($this->_get("mf.orders"));
+	}
+
+	/**
+	 * Get the list of MF holdings.
+	 * @return array
+	 */
+	public function getMFHoldings() {
+		return $this->_get("mf.holdings");
+	}
+
+	/**
+	 * Place an mutual fund order.
+	 *
+	 * @param array $params	[Order parameters](https://kite.trade/docs/connect/v3/mf/#orders)
+	 * 				$param string 		"tradingsymbol" Tradingsymbol (ISIN) of the fund.
+	 * 				$param string 		"transaction_type" Transaction type (BUY or SELL).
+	 * 				$param int|null 	"quantity" Quantity to SELL. Not applicable on BUYs.
+	 * 				$param float|null 	"amount" (Optional) Amount worth of units to purchase. Not applicable on SELLs
+	 * 				$param string|null 	"tag" (Optional) An optional tag to apply to an order to identify it (alphanumeric, max 8 chars)
+	 * @return string
+	 */
+	public function placeMFOrder($params) {
+		return $this->_post("mf.order.place", $params);
+	}
+
+	/**
+	 * Cancel an mutual fund order.
+	 *
+	 * @param string $order_id	Order id.
+	 * @return string
+	 */
+	public function cancelMFOrder($order_id) {
+		return $this->_delete("mf.order.cancel", ["order_id" => $order_id]);
+	}
+
+	/**
+	 * Get the list of mutual fund SIP's or individual SIP info.
+	 * @param string|null $sip_id (Optional) SIP id.
+	 * @return array
+	 */
+	public function getMFSIPS($sip_id = null) {
+		if ($sip_id) {
+			return $this->_format_response($this->_get("mf.sip.info", ["sip_id" => $sip_id]));
+		}
+
+		return $this->_format_response_array($this->_get("mf.sips"));
+	}
+
+	/**
+	 * Place an mutual fund order.
+	 *
+	 * @param array $params	[Mutual fund SIP parameters](https://kite.trade/docs/connect/v3/mf/#sip-orders)
+	 * 				$param string 		"tradingsymbol" Tradingsymbol (ISIN) of the fund.
+	 * 				$param float 		"amount" Amount worth of units to purchase. Not applicable on SELLs
+	 * 				$param int 			"instalments" Number of instalments to trigger. If set to -1, instalments are triggered at fixed intervals until the SIP is cancelled
+	 * 				$param string 		"frequency" Order frequency. weekly, monthly, or quarterly.
+	 * 				$param float|null 	"initial_amount" (Optional) Amount worth of units to purchase before the SIP starts.
+	 * 				$param int|null 	"instalment_day" (Optional) If frequency is monthly, the day of the month (1, 5, 10, 15, 20, 25) to trigger the order on.
+	 * 				$param string|null 	"tag" An optional (Optional) tag to apply to an order to identify it (alphanumeric, max 8 chars)
+	 * @return string
+	 */
+	public function placeMFSIP($params) {
+		return $this->_post("mf.sip.place", $params);
+	}
+
+	/**
+	 * Place an mutual fund order.
+	 *
+	 * @param string					Mutual fund SIP ID.
+	 * @param array $params	[Mutual fund SIP modify parameters](https://kite.trade/docs/connect/v1/#orders30)
+	 * 				$param float 		"amount" Amount worth of units to purchase. Not applicable on SELLs
+	 * 				$param int|null 	"instalments" (Optional) Number of instalments to trigger. If set to -1, instalments are triggered at fixed intervals until the SIP is cancelled
+	 * 				$param string|null 	"frequency" (Optional) Order frequency. weekly, monthly, or quarterly.
+	 * 				$param int|null 	"instalment_day" (Optional) If frequency is monthly, the day of the month (1, 5, 10, 15, 20, 25) to trigger the order on.
+	 * 				$param string|null 	"status" (Optional) Pause or unpause an SIP (active or paused).
+	 * @return string
+	 */
+	public function modifyMFSIP($sip_id, $params) {
+		$params["sip_id"] = $sip_id;
+		return $this->_put("mf.sip.modify", $params);
+	}
+
+	/**
+	 * Cancel an mutual fund order.
+	 *
+	 * @param string $sip_id	SIP id.
+	 * @return string
+	 */
+	public function cancelMFSIP($sip_id) {
+		return $this->_delete("mf.sip.cancel", ["sip_id" => $sip_id]);
+	}
+
+	/**
+	 * Get list of mutual fund instruments.
+	 *
+	 * @return array
+	 */
+	public function getMFInstruments() {
+		return $this->_parseMFInstrumentsCSV($this->_get("mf.instruments"));
+	}
+
+
+	/**
+	 * Format response array, For example datetime string to DateTime object
+	 */
+	private function _format_response($data) {
+		foreach(self::$_date_fields as $field) {
+			if (isset($data->$field) && strlen($data->$field) == 19) {
+				$data->$field = new DateTime($data->$field, new DateTimeZone("Asia/Kolkata"));
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Format array of responses
+	 */
+	private function _format_response_array($data) {
+		$results = [];
+		foreach ($data as $k => $item) {
+			$results[$k] =  $this->_format_response($item);
+		}
+
+		return $results;
 	}
 
 	/**
 	 * Alias for sending a GET request.
 	 *
-	 * @param type $route 			Route name mapped in self::$_routes.
-	 * @param type|null $params		Request parameters.
-	 * @return mixed				Array or object (deserialised JSON).
+	 * @param string $route 			Route name mapped in self::$_routes.
+	 * @param array|null $params		Request parameters.
+	 * @return mixed					Array or object (deserialised JSON).
 	 */
 	private function _get($route, $params=null) {
 		return $this->_request($route, "GET", $params);
@@ -521,9 +797,9 @@ class KiteConnect {
 	/**
 	 * Alias for sending a GET request.
 	 *
-	 * @param type $route 			Route name mapped in self::$_routes.
-	 * @param type|null $params		Request parameters.
-	 * @return mixed				Array or object (deserialised JSON).
+	 * @param string $route 			Route name mapped in self::$_routes.
+	 * @param array|null $params		Request parameters.
+	 * @return mixed					Array or object (deserialised JSON).
 	 */
 	private function _post($route, $params=null) {
 		return $this->_request($route, "POST", $params);
@@ -532,9 +808,9 @@ class KiteConnect {
 	/**
 	 * Alias for sending a PUT request.
 	 *
-	 * @param type $route 			Route name mapped in self::$_routes.
-	 * @param type|null $params		Request parameters.
-	 * @return mixed				Array or object (deserialised JSON).
+	 * @param string $route 			Route name mapped in self::$_routes.
+	 * @param array|null $params		Request parameters.
+	 * @return mixed					Array or object (deserialised JSON).
 	 */
 	private function _put($route, $params=null) {
 		return $this->_request($route, "PUT", $params);
@@ -543,9 +819,9 @@ class KiteConnect {
 	/**
 	 * Alias for sending a GET request.
 	 *
-	 * @param type $route 			Route name mapped in self::$_routes.
-	 * @param type|null $params		Request parameters.
-	 * @return mixed				Array or object (deserialised JSON).
+	 * @param string $route 			Route name mapped in self::$_routes.
+	 * @param array|null $params		Request parameters.
+	 * @return mixed					Array or object (deserialised JSON).
 	 */
 	private function _delete($route, $params=null) {
 		return $this->_request($route, "DELETE", $params);
@@ -554,21 +830,12 @@ class KiteConnect {
 	/**
 	 * Make an HTTP request.
 	 *
-	 * @param type $route 			Route name mapped in self::$_routes.
-	 * @param type|null $params		Request parameters.
-	 * @return mixed				Array or object (deserialised JSON).
+	 * @param string $route 			Route name mapped in self::$_routes.
+	 * @param string $method 			The HTTP method to send (GET, POST, PUT, DELETE).
+	 * @param array|null $params		Request parameters.
+	 * @return mixed					Array or object (deserialised JSON).
 	 */
 	private function _request($route, $method, $params=null) {
-		// Is there a token?
-		if($this->access_token) {
-			$params["access_token"] = $this->access_token;
-		}
-
-		// Override instance's API key if one is supplied in the params
-		if(!isset($params["api_key"])) {
-			$params["api_key"] = $this->api_key;
-		}
-
 		$uri = $this->_routes[$route];
 
 		// 'RESTful' URLs.
@@ -581,53 +848,38 @@ class KiteConnect {
 		$url = $this->_root.$uri;
 
 		if($this->debug) {
-			print("Request: " . $url . "\n");
+			print("Request: " . $method . " " . $url . "\n");
 			var_dump($params);
 		}
 
 		// Prepare the payload.
-		$payload = http_build_query($params);
-		$options = [
-			"method"  => $method,
-			"content" => $payload,
-			"ignore_errors" => true,
+		$request_headers = ["Content-type: application/x-www-form-urlencoded",
+					"Accept-Encoding: gzip, deflate",
+					"Accept-Charset: UTF-8,*;q=0.5",
+					"User-Agent: phpkiteconnect/".self::_version,
+					"X-Kite-Version: 3"];
 
-			"header" => "Accept-Language: en-US,en;q=0.8\r\n" .
-						"Accept-Encoding: gzip, deflate\r\n" .
-						"Accept-Charset:UTF-8,*;q=0.5\r\n" .
-						"User-Agent: phpkiteconnect\r\n"
-		];
+		if ($this->api_key && $this->access_token) {
+			$request_headers[] = "Authorization: token " . $this->api_key . ":" . $this->access_token;
+		}
 
-		if($method != "GET") {
-			$options["header"] .= "Content-type: application/x-www-form-urlencoded\r\n";
+		// Make the HTTP request.
+		if(function_exists("curl_init")) {
+			$resp = $this->_curl($url, $method, $request_headers, $params);
 		} else {
-			$url .= "?" . $payload;
+			trigger_error("The php curl module is not installed. Please isntall it for better performance.", E_USER_WARNING);
+			$resp = $this->_http_socket($url, $method, $request_headers, $params);
 		}
-
-		$context  = stream_context_create(["http" => $options]);
-		$result = @file_get_contents($url, false, $context);
-
-		// Request failed due to a network error.
-		if(!$result) {
-			$error = error_get_last();
-			throw new ClientNetworkException($error["message"]);
-		}
+		$headers = $resp["headers"];
+		$result = $resp["body"];
 
 		if($this->debug) {
 			print("Response :" . $result . "\n");
 		}
 
-		// Parse the request headers.
-		$headers = $this->_parseHeaders($http_response_header);
-
-		// Content is gzipped. Uncompress.
-		if(isset($headers["Content-Encoding"]) && stristr($headers["Content-Encoding"], "gzip")) {
-			$result = gzdecode($result);
-		}
-
-		if(empty($headers["Content-Type"])) {
-			throw new DataException("Unknown Content-Type in response");
-		} else if(strpos($headers["Content-Type"], "application/json") !== false) {
+		if(empty($headers["content-type"])) {
+			throw new DataException("Unknown content-type in response");
+		} else if(strpos($headers["content-type"], "application/json") !== false) {
 			$json = @json_decode($result);
 			if(!$json) {
 				throw new DataException("Couldn't parse JSON response");
@@ -651,11 +903,127 @@ class KiteConnect {
 			}
 
 			return $json->data;
-		} else if(strpos($headers["Content-Type"], "text/csv") !== false) {
-			return $this->_parseCSV($result);
+		} else if(strpos($headers["content-type"], "text/csv") !== false) {
+			return $result;
 		} else {
-			throw new DataException("Invalid response format");
+			throw new DataException("Invalid response: ".$result, $headers["status_code"]);
 		}
+	}
+
+	/**
+	 * Make an HTTP request using the PHP socket functions.
+	 *
+	 * @param string $url 				The full URL to retrieve
+	 * @param string $method 			The HTTP method to send (GET, POST, PUT, DELETE).
+	 * @param array|null $headers		Array of HTTP request headers to send.
+	 * @param array|null $params		Array of key=>value request parameters.
+	 * @return array					Returns an array with response "headers" and "body".
+	*/
+	private function _http_socket($url, $method, $headers, $params=null) {
+		// Prepare the payload.
+		$payload = http_build_query($params ? $params : []);
+		$payload = preg_replace("/%5B(\d+?)%5D/", "", $payload);
+
+		$request_headers = "";
+		if($headers && count($headers) > 0) {
+			$request_headers = implode("\r\n", $headers);
+		}
+
+		$options = [
+			"method"  => $method,
+			"content" => $payload,
+			"ignore_errors" => true,
+			"header" => $request_headers
+		];
+
+		if($method == "GET" || $method == "DELETE") {
+			$url .= "?" . $payload;
+		}
+
+		$context  = stream_context_create(["http" => $options]);
+		$result = @file_get_contents($url, false, $context);
+
+		// Request failed due to a network error.
+		if(!$result) {
+			$error = error_get_last();
+			throw new NetworkException($error["message"]);
+		}
+
+		$response_headers =  $this->_parseHeaders($http_response_header);
+
+		// Content is gzipped. Uncompress.
+		if(isset($response_headers["content-encoding"]) && stristr($response_headers["content-encoding"], "gzip")) {
+			$result = gzdecode($result);
+		}
+
+		return ["headers" => $response_headers, "body" => $result];
+	}
+
+	/**
+	 * Make an HTTP request using the PHP curl library.
+	 *
+	 * @param string $url 				The full URL to retrieve
+	 * @param string $method 			The HTTP method to send (GET, POST, PUT, DELETE).
+	 * @param array|null $headers		Array of HTTP request headers to send.
+	 * @param array|null $params		Array of key=>value request parameters.
+	 * @return array					Returns an array with response "headers" and "body".
+	 */
+	private function _curl($url, $method, $headers, $params=null) {
+		$ch = curl_init();
+
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_ENCODING , "gzip");
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+
+		if($headers && is_array($headers) && count($headers) > 0) {
+			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+		}
+
+		// Prepare the payload.
+		$payload = null;
+		if($payload = http_build_query($params && is_array($params) ? $params : [])) {
+			$payload = preg_replace("/%5B(\d+?)%5D/", "", $payload);
+		}
+
+		if($method == "POST" || $method == "PUT") {
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+		} else if($method == "GET" || $method == "DELETE") {
+			$url .= "?" . $payload;
+		}
+
+		// Request URL.
+		curl_setopt($ch, CURLOPT_URL, $url);
+
+		// Routine to collect the response headers.
+		$response_headers = [];
+		curl_setopt($ch, CURLOPT_HEADERFUNCTION, function($curl, $header) use (&$response_headers) {
+			$len = strlen($header);
+			$header = explode(':', $header, 2);
+			if (count($header) < 2) {
+				return $len;
+			}
+
+			$name = strtolower(trim($header[0]));
+			if (!array_key_exists($name, $response_headers)) {
+				$response_headers[$name] = trim($header[1]);
+			} else {
+				$response_headers[$name] = trim($header[1]);
+			}
+
+			return $len;
+		});
+
+		$result = curl_exec($ch);
+
+		// Request error.
+		if($error = curl_error($ch)) {
+			throw new NetworkException($error);
+		}
+
+		$response_headers["status_code"] = intval(curl_getinfo($ch, CURLINFO_HTTP_CODE));
+
+		return ["headers" => $response_headers, "body" => $result];
 	}
 
 	/**
@@ -663,13 +1031,17 @@ class KiteConnect {
 	 * @param string $csv	Complete CSV dump.
 	 * @return array
 	 */
-	private function _parseCSV($csv) {
+	private function _parseInstrumentsCSV($csv) {
 		$lines = explode("\n", $csv);
 
 		$records = [];
 		$head = [];
 		for($n=0; $n<count($lines); $n++) {
 			if($cols = @str_getcsv($lines[$n])) {
+				if(count($cols) < 5) {
+					continue;
+				}
+
 				// First line is the header.
 				if($n === 0) {
 					$head = $cols;
@@ -683,6 +1055,56 @@ class KiteConnect {
 				$o->strike = floatval($o->strike);
 				$o->tick_size = floatval($o->tick_size);
 				$o->lot_size = floatval($o->lot_size);
+
+				if (!empty($o->expiry) && strlen($o->expiry) == 10) {
+					$o->expiry = new DateTime($o->expiry, new DateTimeZone("Asia/Kolkata"));
+				}
+
+				$records[] = $o;
+			}
+		}
+
+		return $records;
+	}
+
+
+	/**
+	 * Parse a CSV dump into an array of objects.
+	 * @param string $csv	Complete CSV dump.
+	 * @return array
+	 */
+	private function _parseMFInstrumentsCSV($csv) {
+		$lines = explode("\n", $csv);
+
+		$records = [];
+		$head = [];
+		for($n=0; $n<count($lines); $n++) {
+			if($cols = @str_getcsv($lines[$n])) {
+				if(count($cols) < 5) {
+					continue;
+				}
+
+				// First line is the header.
+				if($n === 0) {
+					$head = $cols;
+					continue;
+				}
+
+				// Combine header columns + values to an associative array
+				// and then to an object;
+				$o = (object) array_combine($head, $cols);
+				$o->minimum_purchase_amount = floatval($o->minimum_purchase_amount);
+				$o->purchase_amount_multiplier = floatval($o->purchase_amount_multiplier);
+				$o->minimum_additional_purchase_amount = floatval($o->minimum_additional_purchase_amount);
+				$o->minimum_redemption_quantity = floatval($o->minimum_redemption_quantity);
+				$o->redemption_quantity_multiplier = floatval($o->redemption_quantity_multiplier);
+				$o->last_price = floatval($o->last_price);
+				$o->purchase_allowed = boolval(intval($o->purchase_allowed));
+				$o->redemption_allowed = boolval(intval($o->redemption_allowed));
+
+				if (!empty($o->last_price_date) && strlen($o->last_price_date) == 10) {
+					$o->last_price_date = new DateTime($o->last_price_date, new DateTimeZone("Asia/Kolkata"));
+				}
 
 				$records[] = $o;
 			}
@@ -703,7 +1125,7 @@ class KiteConnect {
 			$h = explode(":", $v, 2);
 
 			if(isset($h[1])) {
-				$head[trim($h[0])] = trim( $h[1] );
+				$head[strtolower(trim($h[0]))] = trim( $h[1] );
 			} else {
 				$head[] = $v;
 				if(preg_match("/HTTP\/[0-9\.]+\s+([0-9]+)/is", $v, $out)) {
@@ -757,15 +1179,6 @@ class PermissionException extends KiteException {
 }
 
 /**
- * Exceptions pertaining to calls dealing with the logged in user's data.
- */
-class UserException extends KiteException {
-	public function __construct($message, $code = 500, Exception $previous = null) {
-		parent::__construct($message, $code, $previous);
-	}
-}
-
-/**
  * Represents all order placement and manipulation errors.
  */
 class OrderException extends KiteException {
@@ -800,13 +1213,3 @@ class NetworkException extends KiteException {
 		parent::__construct($message, $code, $previous);
 	}
 }
-
-/**
- * Raised when Kite Client is unable to connect to the Kite Connect servers.
- */
-class ClientNetworkException extends KiteException {
-	public function __construct($message, $code = 504, Exception $previous = null) {
-		parent::__construct($message, $code, $previous);
-	}
-}
-
