@@ -350,13 +350,13 @@ class KiteConnect {
 	 * 				$params string 		"tradingsymbol" Tradingsymbol of the instrument (ex. RELIANCE, INFY).
 	 * 				$params string 		"transaction_type" Transaction type (BUY or SELL).
 	 * 				$params string 		"product" Product code (NRML, MIS, CNC).
-	 * 				$params string 		"order_type" Order type (NRML, SL, SL-M, MARKET).
+	 * 				$params string 		"order_type" Order type (SL, SL-M, MARKET).
 	 * 				$params int	   		"quantity" Order quantity
 	 * 				$params int|null	"disclosed_quantity" (Optional) Disclosed quantity
 	 * 				$params float|null  "price" (Optional) Order Price
 	 * 				$params float|null  "trigger_price" (Optional) Trigger price
-	 * 				$params float|null  "squareoff" (Optional) Square off value (only for bracket orders)
-	 * 				$params float|null  "stoploss" (Optional) Stoploss value (only for bracket orders)
+	 * 				$params float|null  "squareoff" (Mandatory only for bracker orders) Square off value
+	 * 				$params float|null  "stoploss" (Mandatory only for bracker orders) Stoploss value
 	 * 				$params float|null  "trailing_stoploss" (Optional) Trailing stoploss value (only for bracket orders)
 	 * 				$params float|null  "tag" (Optional) Order tag
 	 * 				$params string|null "validity" (Optional) Order validity (DAY, IOC).
@@ -374,7 +374,7 @@ class KiteConnect {
 	 * @param string $order_id			"order_id" Order id.
 	 * @param array $params	[Order modify parameters](https://kite.trade/docs/connect/v3/orders/#regular-order-parameters_1).
 	 * 				$params string 		"parent_order_id" (Optional) Parent order id if its a multi legged order.
-	 * 				$params string 		"order_type" (Optional) Order type (NRML, SL, SL-M, MARKET).
+	 * 				$params string 		"order_type" (Optional) Order type (SL, SL-M, MARKET)
 	 * 				$params int	   		"quantity" (Optional) Order quantity
 	 * 				$params int|null	"disclosed_quantity" (Optional) Disclosed quantity
 	 * 				$params float|null  "price" (Optional) Order Price
