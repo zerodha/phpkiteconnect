@@ -350,7 +350,7 @@ class KiteConnect {
 	 * 				$params string 		"tradingsymbol" Tradingsymbol of the instrument (ex. RELIANCE, INFY).
 	 * 				$params string 		"transaction_type" Transaction type (BUY or SELL).
 	 * 				$params string 		"product" Product code (NRML, MIS, CNC).
-	 * 				$params string 		"order_type" Order type (SL, SL-M, MARKET).
+	 * 				$params string 		"order_type" Order type (SL, SL-M, LIMIT, MARKET).
 	 * 				$params int	   		"quantity" Order quantity
 	 * 				$params int|null	"disclosed_quantity" (Optional) Disclosed quantity
 	 * 				$params float|null  "price" (Optional) Order Price
