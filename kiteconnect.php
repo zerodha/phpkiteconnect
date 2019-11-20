@@ -103,7 +103,7 @@ class KiteConnect {
 	private $_root = "https://api.kite.trade";
 	private static $_login = "https://kite.trade/connect/login";
 	private static $_date_fields = ["order_timestamp", "exchange_timestamp", "created", "last_instalment", "fill_timestamp", "timestamp", "last_trade_time"];
-	const _version = 3.0;
+	const _version = "3.2.0";
 
 	// API route map.
 	private $_routes = [
