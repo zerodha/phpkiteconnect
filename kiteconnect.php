@@ -34,7 +34,7 @@ Getting started
 
 	// Assuming you have obtained the `request_token`
 	// after the auth flow redirect by redirecting the
-	// user to $kite->login_url()
+	// user to $kite->getLoginURL()
 	try {
 		$user = $kite->generateSession("request_token_obtained", "your_api_secret");
 
@@ -80,7 +80,7 @@ use one instance to manage many users.
 Hence, in your web application, typically:
 
 - You will initialise an instance of the Kite client
-- Redirect the user to the `login_url()`
+- Redirect the user to the `getLoginURL()`
 - At the redirect url endpoint, obtain the
 `request_token` from the query parameters
 - Initialise a new instance of Kite client,
