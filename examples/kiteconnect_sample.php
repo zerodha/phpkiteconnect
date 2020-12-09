@@ -44,4 +44,15 @@
 	])["order_id"];
 
 	echo "Order id is ".$order_id;
+
+	// fetch order margin
+    $order_param = array(array("exchange" => "NSE",
+                    "tradingsymbol" => "INFY",
+                    "transaction_type"   => $kite::TRANSACTION_TYPE_BUY,
+                    "variety" => $kite::VARIETY_REGULAR,
+                    "product"    => $kite::PRODUCT_CNC,
+                    "order_type" => $kite::ORDER_TYPE_MARKET,
+                    "quantity"   => 1
+            ),);
+    print_r($kite->orderMargins($order_param));
 ?>
