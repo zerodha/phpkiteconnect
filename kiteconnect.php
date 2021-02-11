@@ -122,6 +122,7 @@ class KiteConnect {
 		"order.modify" => "/orders/{variety}/{order_id}",
 		"order.cancel" => "/orders/{variety}/{order_id}",
 		"order.trades" => "/orders/{order_id}/trades",
+		"order.margins" => "/margins/orders",
 
 		"portfolio.positions" => "/portfolio/positions",
 		"portfolio.holdings" => "/portfolio/holdings",
@@ -498,6 +499,25 @@ class KiteConnect {
 	}
 
 	/**
+	 * Fetch order margin
+	 *
+	 * @param array $params   Order params to fetch margin detail
+	 * 				$params string 	   "exchange" Name of the exchange(eg. NSE, BSE, NFO, CDS, MCX)
+	 *              $params string 	   "tradingsymbol" Trading symbol of the instrument
+	 *              $params string 	   "transaction_type" eg. BUY, SELL 
+	 *              $params string 	   "variety" Order variety (regular, amo, bo, co etc.)
+	 *              $params string 	   "product" Margin product to use for the order
+	 *              $params string 	   "order_type" Order type (MARKET, LIMIT etc.)
+	 *              $params int 	   "quantity" Quantity of the order
+	 *              $params float|null "price" Price at which the order is going to be placed (LIMIT orders)
+	 *              $params float|null "trigger_price" Trigger price (for SL, SL-M, CO orders)
+	 * @return array
+	 */
+	public function orderMargins($params) {
+		return $this->_post("order.margins", json_encode($params), 'Content-type: application/json');
+	}
+
+	/**
 	 * Retrieve the list of trades executed.
 	 * @return array
 	 */
@@ -650,12 +670,14 @@ class KiteConnect {
 	 * 				$params bool "continuous" is a bool flag to get continuous data for futures and options instruments. Defaults to false.
 	 * @return array
 	 */
-	public function getHistoricalData($instrument_token, $interval, $from, $to, $continuous = false) {
+	public function getHistoricalData($instrument_token, $interval, $from, $to, $continuous = false, $oi = false) {
 		$params = [
 			"instrument_token" => $instrument_token,
 			"interval" => $interval,
 			"from" => $from,
-			"to" => $to
+			"to" => $to,
+			"continuous" => $continuous,
+			"oi" => $oi
 		];
 
 		if ($from instanceof DateTime) {
@@ -666,10 +688,16 @@ class KiteConnect {
 			$params["to"] = $to->format("Y-m-d H:i:s");
 		}
 
-		if (empty($params["continuous"]) || $continuous == false) {
+		if ($params["continuous"] == false) {
 			$params["continuous"] = 0;
 		} else {
 			$params["continuous"] = 1;
+		}
+
+		if ($params["oi"] == false) {
+			$params["oi"] = 0;
+		} else {
+			$params["oi"] = 1;
 		}
 
 		$data = $this->_get("market.historical", $params);
@@ -683,6 +711,9 @@ class KiteConnect {
 			$r->low = $j[3];
 			$r->close = $j[4];
 			$r->volume = $j[5];
+			if (!empty($j[6])) {
+				$r->oi = $j[6];
+			}
 
 			$records[] = $r;
 		}
@@ -824,7 +855,7 @@ class KiteConnect {
 	}
 
 	/**
-	 * Get history of the individual order.
+	 * Get detail of individual GTT order.
 	 * @param string $trigger_id			"trigger_id" Trigger ID
 	 * @return array
 	 */
@@ -833,7 +864,7 @@ class KiteConnect {
 	}
 
 	/**
-	 * Cancel an open order.
+	 * Delete an GTT order
 	 * @param string $trigger_id			"trigger_id" Trigger ID
 	 * @return void
 	 */
@@ -989,8 +1020,8 @@ class KiteConnect {
 	 * @param array|null $params		Request parameters.
 	 * @return mixed					Array or object (deserialised JSON).
 	 */
-	private function _get($route, $params=null) {
-		return $this->_request($route, "GET", $params);
+	private function _get($route, $params=null, $header_content=null) {
+		return $this->_request($route, "GET", $params, $header_content);
 	}
 
 	/**
@@ -1000,8 +1031,8 @@ class KiteConnect {
 	 * @param array|null $params		Request parameters.
 	 * @return mixed					Array or object (deserialised JSON).
 	 */
-	private function _post($route, $params=null) {
-		return $this->_request($route, "POST", $params);
+	private function _post($route, $params=null, $header_content=null) {
+		return $this->_request($route, "POST", $params, $header_content);
 	}
 
 	/**
@@ -1011,8 +1042,8 @@ class KiteConnect {
 	 * @param array|null $params		Request parameters.
 	 * @return mixed					Array or object (deserialised JSON).
 	 */
-	private function _put($route, $params=null) {
-		return $this->_request($route, "PUT", $params);
+	private function _put($route, $params=null, $header_content=null) {
+		return $this->_request($route, "PUT", $params, $header_content);
 	}
 
 	/**
@@ -1022,8 +1053,8 @@ class KiteConnect {
 	 * @param array|null $params		Request parameters.
 	 * @return mixed					Array or object (deserialised JSON).
 	 */
-	private function _delete($route, $params=null) {
-		return $this->_request($route, "DELETE", $params);
+	private function _delete($route, $params=null, $header_content=null) {
+		return $this->_request($route, "DELETE", $params, $header_content);
 	}
 
 	/**
@@ -1034,7 +1065,7 @@ class KiteConnect {
 	 * @param array|null $params		Request parameters.
 	 * @return mixed					Array or object (deserialised JSON).
 	 */
-	private function _request($route, $method, $params=null) {
+	private function _request($route, $method, $params, $header_content) {
 		$uri = $this->_routes[$route];
 
 		// 'RESTful' URLs.
@@ -1051,17 +1082,21 @@ class KiteConnect {
 			var_dump($params);
 		}
 
-		// Prepare the payload.
-		$request_headers = ["Content-type: application/x-www-form-urlencoded",
-					"Accept-Encoding: gzip, deflate",
-					"Accept-Charset: UTF-8,*;q=0.5",
+		// Set the header content type, if not sent set it to default
+		if ($header_content){
+			$content_type = $header_content;
+		} else {
+			// default header content type of urlencoded
+			$content_type = "Content-type: application/x-www-form-urlencoded";
+		}
+		// Prepare the payload
+		$request_headers[] = [$content_type,
 					"User-Agent: phpkiteconnect/".self::_version,
 					"X-Kite-Version: 3"];
-
+		
 		if ($this->api_key && $this->access_token) {
 			$request_headers[] = "Authorization: token " . $this->api_key . ":" . $this->access_token;
 		}
-
 		// Make the HTTP request.
 		if(function_exists("curl_init")) {
 			$resp = $this->_curl($url, $method, $request_headers, $params);
@@ -1075,7 +1110,6 @@ class KiteConnect {
 		if($this->debug) {
 			print("Response :" . $result . "\n");
 		}
-
 		if(empty($headers["content-type"])) {
 			throw new DataException("Unknown content-type in response");
 		} else if(strpos($headers["content-type"], "application/json") !== false) {
@@ -1092,7 +1126,6 @@ class KiteConnect {
 						return;
 					}
 				}
-
 				// Check if the exception class is defined.
 				if(class_exists($json->error_type)) {
 					throw new $json->error_type($json->message, $headers["status_code"]);
@@ -1183,6 +1216,9 @@ class KiteConnect {
 		$payload = null;
 		if($payload = http_build_query($params && is_array($params) ? $params : [])) {
 			$payload = preg_replace("/%5B(\d+?)%5D/", "", $payload);
+		} else if(json_decode($params)){
+			// send json param payload 
+			$payload = $params;
 		}
 
 		if($method == "POST" || $method == "PUT") {
