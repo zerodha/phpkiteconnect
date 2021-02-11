@@ -670,12 +670,14 @@ class KiteConnect {
 	 * 				$params bool "continuous" is a bool flag to get continuous data for futures and options instruments. Defaults to false.
 	 * @return array
 	 */
-	public function getHistoricalData($instrument_token, $interval, $from, $to, $continuous = false) {
+	public function getHistoricalData($instrument_token, $interval, $from, $to, $continuous = false, $oi = false) {
 		$params = [
 			"instrument_token" => $instrument_token,
 			"interval" => $interval,
 			"from" => $from,
-			"to" => $to
+			"to" => $to,
+			"continuous" => $continuous,
+			"oi" => $oi
 		];
 
 		if ($from instanceof DateTime) {
@@ -686,10 +688,16 @@ class KiteConnect {
 			$params["to"] = $to->format("Y-m-d H:i:s");
 		}
 
-		if (empty($params["continuous"]) || $continuous == false) {
+		if ($params["continuous"] == false) {
 			$params["continuous"] = 0;
 		} else {
 			$params["continuous"] = 1;
+		}
+
+		if ($params["oi"] == false) {
+			$params["oi"] = 0;
+		} else {
+			$params["oi"] = 1;
 		}
 
 		$data = $this->_get("market.historical", $params);
@@ -703,6 +711,9 @@ class KiteConnect {
 			$r->low = $j[3];
 			$r->close = $j[4];
 			$r->volume = $j[5];
+			if (!empty($j[6])) {
+				$r->oi = $j[6];
+			}
 
 			$records[] = $r;
 		}
@@ -844,7 +855,7 @@ class KiteConnect {
 	}
 
 	/**
-	 * Get history of the individual order.
+	 * Get detail of individual GTT order.
 	 * @param string $trigger_id			"trigger_id" Trigger ID
 	 * @return array
 	 */
@@ -853,7 +864,7 @@ class KiteConnect {
 	}
 
 	/**
-	 * Cancel an open order.
+	 * Delete an GTT order
 	 * @param string $trigger_id			"trigger_id" Trigger ID
 	 * @return void
 	 */
