@@ -1,0 +1,54 @@
+{
+    "name": "zerodha/phpkiteconnect",
+    "description": "The PHP client library for the Kite Connect trading APIs Resources",
+    "keywords": [
+        "zerodha",
+        "phpkiteconnect"
+    ],
+    "homepage": "https://github.com/zerodha/phpkiteconnect",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "zerodha",
+            "email": "kite@zerodha.com",
+            "role": "Owner"
+        },
+        {
+            "name": "pushpak1300",
+            "email": "pushpak1300@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^7.3",
+        "ext-json": "*",
+        "ext-curl": "*",
+        "ext-zlib": "*"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^2.17",
+        "phpunit/phpunit": "^9.5",
+        "vimeo/psalm": "^4.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "KiteConnect\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "KiteConnect\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "psalm": "vendor/bin/psalm",
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage",
+        "format": "vendor/bin/php-cs-fixer fix --allow-risky=yes"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

@@ -15,7 +15,7 @@ Download `kiteconnect.php` and `include()` it in your application.
 ## Usage
 ```php
 <?php
-    include dirname(__FILE__)."/kiteconnect.php";
+    use KiteConnect\KiteConnect;
 
     // Initialise.
     $kite = new KiteConnect("your_api_key");
@@ -59,4 +59,3 @@ Refer to the [PHP client documentation](https://kite.trade/docs/phpkiteconnect/v
 
 ## Changelog
 [Check CHANGELOG.md](CHANGELOG.md)
-
