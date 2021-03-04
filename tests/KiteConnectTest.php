@@ -30,5 +30,4 @@ class KiteConnectTest extends TestCase
         $loginUrl = $kiteConnect->getLoginURL();
         $this->assertIsString($loginUrl);
     }
-
 }

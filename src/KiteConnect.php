@@ -1646,6 +1646,7 @@ class KiteConnect
                 // First line is the header.
                 if ($count === 0) {
                     $head = $colums;
+
                     continue;
                 }
 
