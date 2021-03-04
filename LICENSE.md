@@ -1,6 +1,6 @@
 The MIT License (MIT)
 
-Copyright (c) pushpak1300 <pushpak1300@gmail.com>
+Copyright (c) [Zerodha Technology](http://zerodha.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

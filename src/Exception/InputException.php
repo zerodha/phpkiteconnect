@@ -15,7 +15,7 @@ class InputException extends KiteException
      * @param Exception|null $previous
      * @return void
      */
-    public function __construct($message, $code = 500, Exception $previous = null)
+    public function __construct($message, int $code = 500, Exception $previous = null)
     {
         parent::__construct($message, $code, $previous);
     }

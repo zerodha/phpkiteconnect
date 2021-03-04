@@ -15,7 +15,7 @@ class DataException extends KiteException
      * @param Exception|null $previous
      * @return void
      */
-    public function __construct($message, $code = 502, Exception $previous = null)
+    public function __construct($message, int $code = 502, Exception $previous = null)
     {
         parent::__construct($message, $code, $previous);
     }

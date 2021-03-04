@@ -156,7 +156,7 @@ class KiteConnect
     private $_root = "https://api.kite.trade";
 
     /** @var String */
-    private static $_login = "https://kite.trade/connect/login";
+    private $_login = "https://kite.trade/connect/login";
 
     /** @var array */
     private static $_date_fields = ["order_timestamp", "exchange_timestamp", "created", "last_instalment", "fill_timestamp", "timestamp", "last_trade_time"];
@@ -307,7 +307,7 @@ class KiteConnect
      */
     public function getLoginURL(): string
     {
-        return sprintf("%s?api_key=%s&v=3", self::$_login, $this->api_key);
+        return "{$this->_login}?api_key={$this->api_key}&v=3";
     }
 
     /**
@@ -478,7 +478,7 @@ class KiteConnect
      *                $params float|null  "trailing_stoploss" (Optional) Trailing stoploss value (only for bracket orders)
      *                $params float|null  "tag" (Optional) Order tag
      *                $params string|null "validity" (Optional) Order validity (DAY, IOC).
-     * @return string
+     * @return mixed|null
      * @throws DataException
      * @throws GeneralException
      * @throws InputException
@@ -487,7 +487,7 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function placeOrder(string $variety, array $params): string
+    public function placeOrder(string $variety, array $params)
     {
         $params["variety"] = $variety;
 
@@ -1635,32 +1635,33 @@ class KiteConnect
 
         $records = [];
         $head = [];
-        for ($n = 0; $n < count($lines); $n++) {
-            if ($cols = @str_getcsv($lines[$n])) {
-                if (count($cols) < 5) {
+        for ($count = 0; $count < count($lines); $count++) {
+            $colums = str_getcsv($lines[$count]);
+            if ($colums) {
+                if (count($colums) < 5) {
+                    //why this condition is necessary ?
                     continue;
                 }
 
                 // First line is the header.
-                if ($n === 0) {
-                    $head = $cols;
-
+                if ($count === 0) {
+                    $head = $colums;
                     continue;
                 }
 
                 // Combine header columns + values to an associative array
                 // and then to an object;
-                $o = (object)array_combine($head, $cols);
-                $o->last_price = floatval($o->last_price);
-                $o->strike = floatval($o->strike);
-                $o->tick_size = floatval($o->tick_size);
-                $o->lot_size = floatval($o->lot_size);
+                $record = (object)array_combine($head, $colums);
+                $record->last_price = floatval($record->last_price);
+                $record->strike = floatval($record->strike);
+                $record->tick_size = floatval($record->tick_size);
+                $record->lot_size = floatval($record->lot_size);
 
-                if (! empty($o->expiry) && strlen($o->expiry) == 10) {
-                    $o->expiry = new DateTime($o->expiry, new DateTimeZone("Asia/Kolkata"));
+                if (! empty($record->expiry) && strlen($record->expiry) == 10) {
+                    $record->expiry = new DateTime($record->expiry, new DateTimeZone("Asia/Kolkata"));
                 }
 
-                $records[] = $o;
+                $records[] = $record;
             }
         }
 
