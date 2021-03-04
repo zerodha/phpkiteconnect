@@ -10,7 +10,10 @@ Kite Connect is a set of REST-like APIs that expose many capabilities required t
 - [Kite Connect HTTP API documentation](https://kite.trade/docs/connect/v3)
 
 ## Installing
-Download `kiteconnect.php` and `include()` it in your application.
+You can install the package via composer:
+```bash
+composer require zerodha/phpkiteconnect
+```
 
 ## Usage
 ```php
@@ -25,10 +28,8 @@ Download `kiteconnect.php` and `include()` it in your application.
     // user to $kite->login_url()
     try {
         $user = $kite->generateSession("request_token_obtained", "your_api_secret");
-
         echo "Authentication successful. \n";
         print_r($user);
-
         $kite->setAccessToken($user->access_token);
     } catch(Exception $e) {
         echo "Authentication failed: ".$e->getMessage();
@@ -42,7 +43,7 @@ Download `kiteconnect.php` and `include()` it in your application.
     print_r($kite->getPositions());
 
     // Place order.
-    $o = $kite->placeOrder("regular", [
+    $order = $kite->placeOrder("regular", [
         "tradingsymbol" => "INFY",
         "exchange" => "NSE",
         "quantity" => 1,
@@ -51,7 +52,7 @@ Download `kiteconnect.php` and `include()` it in your application.
         "product" => "NRML"
     ]);
 
-    echo "Order id is ".$o->order_id;
+    echo "Order id is ".$order->order_id;
 ?>
 ```
 

@@ -318,28 +318,28 @@ class KiteConnect
      *
      * @param string $request_token Token obtained from the GET params after a successful login redirect
      * @param string $api_secret The API secret issued with the API key.
-     * @return array
+     * @return mixed
      * @throws Exception
      */
-    public function generateSession(string $request_token, string $api_secret): array
+    public function generateSession(string $request_token, string $api_secret)
     {
         $checksum = hash("sha256", $this->api_key . $request_token . $api_secret);
 
-        $resp = $this->_post("api.token", [
+        $response = $this->_post("api.token", [
             "api_key" => $this->api_key,
             "request_token" => $request_token,
             "checksum" => $checksum,
         ]);
 
-        if ($resp->access_token) {
-            $this->setAccessToken($resp->access_token);
+        if ($response->access_token) {
+            $this->setAccessToken($response->access_token);
         }
 
-        if ($resp->login_time) {
-            $resp->login_time = new DateTime($resp->login_time, new DateTimeZone("Asia/Kolkata"));
+        if ($response->login_time) {
+            $response->login_time = new DateTime($response->login_time, new DateTimeZone("Asia/Kolkata"));
         }
 
-        return $resp;
+        return $response;
     }
 
     /**
@@ -510,6 +510,12 @@ class KiteConnect
      *
      * @return mixed
      * @throws DataException
+     * @throws GeneralException
+     * @throws InputException
+     * @throws NetworkException
+     * @throws OrderException
+     * @throws PermissionException
+     * @throws TokenException
      */
     public function modifyOrder(string $variety, string $order_id, array $params): Mixed_
     {
@@ -1420,8 +1426,8 @@ class KiteConnect
 
         // 'RESTful' URLs.
         if (strpos($uri, "{") !== false) {
-            foreach ($params as $k => $v) {
-                $uri = str_replace("{" . $k . "}", $v, $uri);
+            foreach ($params as $key => $value) {
+                $uri = str_replace("{" . $key . "}", $value, $uri);
             }
         }
 
@@ -1440,8 +1446,7 @@ class KiteConnect
             $content_type = "Content-type: application/x-www-form-urlencoded";
         }
         // Prepare the payload
-        $request_headers = [];
-        $request_headers[] = [
+        $request_headers = [
             $content_type,
             "User-Agent: phpkiteconnect/" . self::_version,
             "X-Kite-Version: 3",
