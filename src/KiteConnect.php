@@ -36,41 +36,6 @@ use stdClass;
  * are returned as native PHP structures, for example, dicts, lists, bools etc.
  * See the **[Kite Connect API documentation](https://kite.trade/docs/connect/v3/)**
  * for the complete list of APIs, supported parameters and values, and response formats.
- * Getting started
- * ---------------
- * <pre>
- * <?php
- * include dirname(__FILE__)."/kiteconnect.php";
- * // Initialise.
- * $kite = new KiteConnect("your_api_key");
- * // Assuming you have obtained the `request_token`
- * // after the auth flow redirect by redirecting the
- * // user to $kite->login_url()
- * try {
- * $user = $kite->generateSession("request_token_obtained", "your_api_secret");
- * echo "Authentication successful. \n";
- * print_r($user);
- * $kite->setAccessToken($user->access_token);
- * } catch(Exception $e) {
- * echo "Authentication failed: ".$e->getMessage();
- * throw $e;
- * }
- * echo $user->user_id." has logged in";
- * // Get the list of positions.
- * echo "Positions: \n";
- * print_r($kite->getPositions());
- * // Place order.
- * $o = $kite->placeOrder("regular", [
- * "tradingsymbol" => "INFY",
- * "exchange" => "NSE",
- * "quantity" => 1,
- * "transaction_type" => "BUY",
- * "order_type" => "MARKET",
- * "product" => "NRML"
- * ]);
- * echo "Order id is ".$o->order_id;
- * ?>
- * </pre>
  * A typical web application
  * -------------------------
  * In a typical web application where a new instance of
@@ -148,22 +113,22 @@ class KiteConnect
     public const GTT_STATUS_REJECTED = "rejected";
     public const GTT_STATUS_DELETED = "deleted";
 
-    public const _version = "3.2.0";
+    public const VERSION = "3.2.0";
 
     // Default root API endpoint. It's possible to
     // override this by passing the `root` parameter during initialisation.
     /** @var String */
-    private $_root = "https://api.kite.trade";
+    private $baseUrl = "https://api.kite.trade";
 
     /** @var String */
-    private $_login = "https://kite.trade/connect/login";
+    private $loginUrl = "https://kite.trade/connect/login";
 
     /** @var array */
-    private static $_date_fields = ["order_timestamp", "exchange_timestamp", "created", "last_instalment", "fill_timestamp", "timestamp", "last_trade_time"];
+    private static $dateFields = ["order_timestamp", "exchange_timestamp", "created", "last_instalment", "fill_timestamp", "timestamp", "last_trade_time"];
 
     // API route map.
     /** @var array */
-    private $_routes = [
+    private $routes = [
         "api.token" => "/session/token",
         "api.token.invalidate" => "/session/token",
         "api.token.renew" => "/session/refresh_token",
@@ -222,22 +187,22 @@ class KiteConnect
     private $timeout;
 
     /** @var mixed */
-    private $api_key;
+    private $apiKey;
 
     /** @var mixed */
-    private $access_token;
+    private $accessToken;
 
     /** @var mixed */
     private $debug;
 
     /** @var Closure */
-    private $session_hook;
+    private $sessionHook;
 
     /**
      * Initialise a new Kite Connect client instance.
      *
-     * @param string $api_key The Kite Connect API key issued to you.
-     * @param string|null $access_token The token obtained after the login flow in exchange for the `request_token`.
+     * @param string $apiKey The Kite Connect API key issued to you.
+     * @param string|null $accessToken The token obtained after the login flow in exchange for the `request_token`.
      *                                Pre-login, this will default to None,
      *                                but once you have obtained it, you should
      *                                persist it in a database or session to pass
@@ -251,20 +216,20 @@ class KiteConnect
      * @return void
      */
     public function __construct(
-        string $api_key,
-        string $access_token = null,
+        string $apiKey,
+        string $accessToken = null,
         string $root = null,
         bool $debug = false,
         int $timeout = 7
     ) {
-        $this->api_key = $api_key;
-        $this->access_token = $access_token;
+        $this->apiKey = $apiKey;
+        $this->accessToken = $accessToken;
         $this->debug = $debug;
-        $this->session_hook = null;
+        $this->sessionHook = null;
         $this->timeout = $timeout;
 
         if ($root) {
-            $this->_root = $root;
+            $this->baseUrl = $root;
         }
     }
 
@@ -286,18 +251,18 @@ class KiteConnect
      */
     public function setSessionExpiryHook(Closure $method): void
     {
-        $this->session_hook = $method;
+        $this->sessionHook = $method;
     }
 
     /**
      * Set the `access_token` received after a successful authentication.
      *
-     * @param string $access_token The `access_token` received after a successful authentication token exchange.
+     * @param string $accessToken The `access_token` received after a successful authentication token exchange.
      * @return void
      */
-    public function setAccessToken(string $access_token): void
+    public function setAccessToken(string $accessToken): void
     {
-        $this->access_token = $access_token;
+        $this->accessToken = $accessToken;
     }
 
     /**
@@ -307,7 +272,7 @@ class KiteConnect
      */
     public function getLoginURL(): string
     {
-        return "{$this->_login}?api_key={$this->api_key}&v=3";
+        return "{$this->loginUrl}?api_key={$this->apiKey}&v=3";
     }
 
     /**
@@ -316,18 +281,18 @@ class KiteConnect
      * response contains not just the `access_token`, but metadata for
      * the user who has authenticated.
      *
-     * @param string $request_token Token obtained from the GET params after a successful login redirect
-     * @param string $api_secret The API secret issued with the API key.
+     * @param string $requestToken Token obtained from the GET params after a successful login redirect
+     * @param string $apiSecret The API secret issued with the API key.
      * @return mixed
      * @throws Exception
      */
-    public function generateSession(string $request_token, string $api_secret)
+    public function generateSession(string $requestToken, string $apiSecret)
     {
-        $checksum = hash("sha256", $this->api_key . $request_token . $api_secret);
+        $checksum = hash("sha256", $this->apiKey . $requestToken . $apiSecret);
 
-        $response = $this->_post("api.token", [
-            "api_key" => $this->api_key,
-            "request_token" => $request_token,
+        $response = $this->post("api.token", [
+            "api_key" => $this->apiKey,
+            "request_token" => $requestToken,
             "checksum" => $checksum,
         ]);
 
@@ -345,7 +310,7 @@ class KiteConnect
     /**
      * Kill the session by invalidating the access token.
      *
-     * @param string|null $access_token (Optional) `access_token` to invalidate. Default is the active `access_token`.
+     * @param string|null $accessToken (Optional) `access_token` to invalidate. Default is the active `access_token`.
      * @return mixed
      * @throws DataException
      * @throws GeneralException
@@ -355,15 +320,15 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function invalidateAccessToken($access_token = null)
+    public function invalidateAccessToken($accessToken = null)
     {
-        if (! $access_token) {
-            $access_token = $this->access_token;
+        if (! $accessToken) {
+            $accessToken = $this->accessToken;
         }
 
-        return $this->_delete("api.token.invalidate", [
-            "access_token" => $access_token,
-            "api_key" => $this->api_key,
+        return $this->delete("api.token.invalidate", [
+            "access_token" => $accessToken,
+            "api_key" => $this->apiKey,
         ]);
     }
 
@@ -371,8 +336,8 @@ class KiteConnect
      * Renew access token by active refresh token.
      * Renewed access token is implicitly set.
      *
-     * @param string $refresh_token Token obtained from previous successful login.
-     * @param string $api_secret The API secret issued with the API key.
+     * @param string $refreshToken Token obtained from previous successful login.
+     * @param string $apiSecret The API secret issued with the API key.
      * @return array
      * @throws DataException
      * @throws GeneralException
@@ -382,13 +347,13 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function renewAccessToken(string $refresh_token, string $api_secret): array
+    public function renewAccessToken(string $refreshToken, string $apiSecret): array
     {
-        $checksum = hash("sha256", $this->api_key . $refresh_token . $api_secret);
+        $checksum = hash("sha256", $this->apiKey . $refreshToken . $apiSecret);
 
-        $resp = $this->_post("api.token.renew", [
-            "api_key" => $this->api_key,
-            "refresh_token" => $refresh_token,
+        $resp = $this->post("api.token.renew", [
+            "api_key" => $this->apiKey,
+            "refresh_token" => $refreshToken,
             "checksum" => $checksum,
         ]);
 
@@ -402,7 +367,7 @@ class KiteConnect
     /**
      * Invalidate refresh token.
      *
-     * @param string $refresh_token Refresh token to invalidate.
+     * @param string $refreshToken Refresh token to invalidate.
      * @return mixed
      * @throws DataException
      * @throws GeneralException
@@ -412,11 +377,11 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function invalidateRefreshToken(string $refresh_token): Mixed_
+    public function invalidateRefreshToken(string $refreshToken): Mixed_
     {
-        return $this->_delete("api.token.invalidate", [
-            "refresh_token" => $refresh_token,
-            "api_key" => $this->api_key,
+        return $this->delete("api.token.invalidate", [
+            "refresh_token" => $refreshToken,
+            "api_key" => $this->apiKey,
         ]);
     }
 
@@ -434,7 +399,7 @@ class KiteConnect
      */
     public function getProfile(): array
     {
-        return $this->_get("user.profile");
+        return $this->get("user.profile");
     }
 
     /**
@@ -453,10 +418,10 @@ class KiteConnect
     public function getMargins(?string $segment = null): array
     {
         if (! $segment) {
-            return $this->_get("user.margins");
+            return $this->get("user.margins");
         }
 
-        return $this->_get("user.margins.segment", ["segment" => $segment]);
+        return $this->get("user.margins.segment", ["segment" => $segment]);
     }
 
     /**
@@ -491,14 +456,14 @@ class KiteConnect
     {
         $params["variety"] = $variety;
 
-        return $this->_post("order.place", $params);
+        return $this->post("order.place", $params);
     }
 
     /**
      * Modify an open order.
      *
      * @param string $variety "variety"  Order variety (ex. bo, co, amo, regular).
-     * @param string $order_id "order_id" Order id.
+     * @param string $orderId "order_id" Order id.
      * @param array $params [Order modify parameters](https://kite.trade/docs/connect/v3/orders/#regular-order-parameters_1).
      *                $params string        "parent_order_id" (Optional) Parent order id if its a multi legged order.
      *                $params string        "order_type" (Optional) Order type (SL, SL-M, MARKET)
@@ -517,19 +482,19 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function modifyOrder(string $variety, string $order_id, array $params): Mixed_
+    public function modifyOrder(string $variety, string $orderId, array $params): Mixed_
     {
         $params["variety"] = $variety;
-        $params["order_id"] = $order_id;
+        $params["order_id"] = $orderId;
 
-        return $this->_put("order.modify", $params);
+        return $this->put("order.modify", $params);
     }
 
     /**
      * Cancel an open order.
      *
      * @param string $variety "variety"  Order variety (ex. bo, co, amo, regular).
-     * @param string $order_id "order_id" Order id.
+     * @param string $orderId "order_id" Order id.
      * @param array|null $params [Order cancel parameters](https://kite.trade/docs/connect/v3/orders/#cancelling-orders)
      *                $params string        "parent_order_id" (Optional) Parent order id if its a multi legged order.
      *
@@ -542,23 +507,23 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function cancelOrder(string $variety, string $order_id, array $params = null)
+    public function cancelOrder(string $variety, string $orderId, array $params = null)
     {
         if (! $params) {
             $params = [];
         }
 
         $params["variety"] = $variety;
-        $params["order_id"] = $order_id;
+        $params["order_id"] = $orderId;
 
-        return $this->_delete("order.cancel", $params);
+        return $this->delete("order.cancel", $params);
     }
 
     /**
      * Exit a BO or CO.
      *
      * @param string $variety "variety"  Order variety (ex. bo, co, amo, regular).
-     * @param string $order_id "order_id" Order id.
+     * @param string $orderId "order_id" Order id.
      * @param array $params [Order cancel parameters](https://kite.trade/docs/connect/v3/orders/#cancelling-orders)
      *                $params string        "parent_order_id" (Optional) Parent order id if its a multi legged order.
      *
@@ -571,9 +536,9 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function exitOrder(string $variety, string $order_id, array $params)
+    public function exitOrder(string $variety, string $orderId, array $params)
     {
-        return $this->cancelOrder($variety, $order_id, $params);
+        return $this->cancelOrder($variety, $orderId, $params);
     }
 
     /**
@@ -585,28 +550,28 @@ class KiteConnect
      */
     public function getOrders(): array
     {
-        return $this->_format_response_array($this->_get("orders"));
+        return $this->formatResponseArray($this->get("orders"));
     }
 
     /**
      * Get history of the individual order.
-     * @param string $order_id ID of the order (optional) whose trades
+     * @param string $orderId ID of the order (optional) whose trades
      *                            are to be retrieved. If no `order_id` is
      *                            specified, all trades for the day are returned.
      * @return array
      * @throws DataException
      * @throws Exception
      */
-    public function getOrderHistory(string $order_id): array
+    public function getOrderHistory(string $orderId): array
     {
-        return $this->_format_response_array($this->_get("order.info", ["order_id" => $order_id]));
+        return $this->formatResponseArray($this->get("order.info", ["order_id" => $orderId]));
     }
 
     /**
      * Fetch order margin
      *
      * @param array $params Order params to fetch margin detail
-     *                $params string       "exchange" Name of the exchange(eg. NSE, BSE, NFO, CDS, MCX)
+     *              $params string       "exchange" Name of the exchange(eg. NSE, BSE, NFO, CDS, MCX)
      *              $params string       "tradingsymbol" Trading symbol of the instrument
      *              $params string       "transaction_type" eg. BUY, SELL
      *              $params string       "variety" Order variety (regular, amo, bo, co etc.)
@@ -626,7 +591,7 @@ class KiteConnect
      */
     public function orderMargins(array $params): array
     {
-        return $this->_post("order.margins", (array)json_encode($params), 'Content-type: application/json');
+        return $this->post("order.margins", (array)json_encode($params), 'Content-type: application/json');
     }
 
     /**
@@ -637,7 +602,7 @@ class KiteConnect
      */
     public function getTrades(): array
     {
-        return $this->_format_response_array($this->_get("trades"));
+        return $this->formatResponseArray($this->get("trades"));
     }
 
     /**
@@ -646,16 +611,16 @@ class KiteConnect
      * An order can be executed in tranches based on market conditions.
      * These trades are individually recorded under an order.
      *
-     * @param string $order_id ID of the order (optional) whose trades
+     * @param string $orderId ID of the order (optional) whose trades
      *                            are to be retrieved. If no `order_id` is
      *                            specified, all trades for the day are returned.
      * @return array
      * @throws DataException
      * @throws Exception
      */
-    public function getOrderTrades(string $order_id): array
+    public function getOrderTrades(string $orderId): array
     {
-        return $this->_format_response_array($this->_get("order.trades", ["order_id" => $order_id]));
+        return $this->formatResponseArray($this->get("order.trades", ["order_id" => $orderId]));
     }
 
     /**
@@ -672,7 +637,7 @@ class KiteConnect
      */
     public function getPositions(): array
     {
-        return $this->_get("portfolio.positions");
+        return $this->get("portfolio.positions");
     }
 
     /**
@@ -689,7 +654,7 @@ class KiteConnect
      */
     public function getHoldings(): array
     {
-        return $this->_get("portfolio.holdings");
+        return $this->get("portfolio.holdings");
     }
 
     /**
@@ -704,10 +669,16 @@ class KiteConnect
      *               $param string "new_product" New Product code (NRML, MIS, CNC).
      * @return bool
      * @throws DataException
+     * @throws GeneralException
+     * @throws InputException
+     * @throws NetworkException
+     * @throws OrderException
+     * @throws PermissionException
+     * @throws TokenException
      */
     public function convertPosition(array $params): bool
     {
-        return $this->_put("portfolio.positions.convert", $params);
+        return $this->put("portfolio.positions.convert", $params);
     }
 
     /**
@@ -749,9 +720,9 @@ class KiteConnect
         if ($exchange) {
             $params = ["exchange" => $exchange];
 
-            return $this->_parseInstrumentsCSV($this->_get("market.instruments", $params));
+            return $this->parseInstrumentsToCSV($this->get("market.instruments", $params));
         } else {
-            return $this->_parseInstrumentsCSV($this->_get("market.instruments.all"));
+            return $this->parseInstrumentsToCSV($this->get("market.instruments.all"));
         }
     }
 
@@ -771,7 +742,7 @@ class KiteConnect
      */
     public function getQuote(array $instruments): array
     {
-        return $this->_format_response_array($this->_get("market.quote", ["i" => $instruments]));
+        return $this->formatResponseArray($this->get("market.quote", ["i" => $instruments]));
     }
 
     /**
@@ -790,7 +761,7 @@ class KiteConnect
      */
     public function getOHLC(array $instruments): array
     {
-        return $this->_get("market.quote.ohlc", ["i" => $instruments]);
+        return $this->get("market.quote.ohlc", ["i" => $instruments]);
     }
 
     /**
@@ -809,7 +780,7 @@ class KiteConnect
      */
     public function getLTP(array $instruments): array
     {
-        return $this->_get("market.quote.ltp", ["i" => $instruments]);
+        return $this->get("market.quote.ltp", ["i" => $instruments]);
     }
 
     /**
@@ -876,7 +847,7 @@ class KiteConnect
             $params["oi"] = 1;
         }
 
-        $data = $this->_get("market.historical", $params);
+        $data = $this->get("market.historical", $params);
 
         $records = [];
         foreach ($data->candles as $j) {
@@ -913,7 +884,7 @@ class KiteConnect
      */
     public function getTriggerRange(string $transaction_type, $instruments): array
     {
-        return $this->_get(
+        return $this->get(
             "market.trigger_range",
             ["i" => $instruments, "transaction_type" => strtolower($transaction_type)]
         );
@@ -921,7 +892,7 @@ class KiteConnect
 
     /**
      * Get the list of MF orders / order info for individual order.
-     * @param string|null $order_id (Optional) Order id.
+     * @param string|null $orderId (Optional) Order id.
      * @return array
      * @throws DataException
      * @throws GeneralException
@@ -931,13 +902,13 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function getMFOrders(?string $order_id = null): array
+    public function getMFOrders(?string $orderId = null): array
     {
-        if ($order_id) {
-            return $this->_format_response($this->_get("mf.order.info", ["order_id" => $order_id]));
+        if ($orderId) {
+            return $this->formatResponse($this->get("mf.order.info", ["order_id" => $orderId]));
         }
 
-        return $this->_format_response_array($this->_get("mf.orders"));
+        return $this->formatResponseArray($this->get("mf.orders"));
     }
 
     /**
@@ -953,7 +924,7 @@ class KiteConnect
      */
     public function getMFHoldings(): array
     {
-        return $this->_get("mf.holdings");
+        return $this->get("mf.holdings");
     }
 
     /**
@@ -976,13 +947,13 @@ class KiteConnect
      */
     public function placeMFOrder(array $params): string
     {
-        return $this->_post("mf.order.place", $params);
+        return $this->post("mf.order.place", $params);
     }
 
     /**
      * Cancel an mutual fund order.
      *
-     * @param string $order_id Order id.
+     * @param string $orderId Order id.
      * @return string
      * @throws DataException
      * @throws GeneralException
@@ -992,9 +963,9 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function cancelMFOrder(string $order_id): string
+    public function cancelMFOrder(string $orderId): string
     {
-        return $this->_delete("mf.order.cancel", ["order_id" => $order_id]);
+        return $this->delete("mf.order.cancel", ["order_id" => $orderId]);
     }
 
     /**
@@ -1012,10 +983,10 @@ class KiteConnect
     public function getMFSIPS(?string $sip_id = null): array
     {
         if ($sip_id) {
-            return $this->_format_response($this->_get("mf.sip.info", ["sip_id" => $sip_id]));
+            return $this->formatResponse($this->get("mf.sip.info", ["sip_id" => $sip_id]));
         }
 
-        return $this->_format_response_array($this->_get("mf.sips"));
+        return $this->formatResponseArray($this->get("mf.sips"));
     }
 
     /**
@@ -1040,7 +1011,7 @@ class KiteConnect
      */
     public function placeMFSIP(array $params): string
     {
-        return $this->_post("mf.sip.place", $params);
+        return $this->post("mf.sip.place", $params);
     }
 
     /**
@@ -1066,7 +1037,7 @@ class KiteConnect
     {
         $params["sip_id"] = $sip_id;
 
-        return $this->_put("mf.sip.modify", $params);
+        return $this->put("mf.sip.modify", $params);
     }
 
     /**
@@ -1084,7 +1055,7 @@ class KiteConnect
      */
     public function cancelMFSIP(string $sip_id): string
     {
-        return $this->_delete("mf.sip.cancel", ["sip_id" => $sip_id]);
+        return $this->delete("mf.sip.cancel", ["sip_id" => $sip_id]);
     }
 
     /**
@@ -1101,7 +1072,7 @@ class KiteConnect
      */
     public function getMFInstruments(): array
     {
-        return $this->_parseMFInstrumentsCSV($this->_get("mf.instruments"));
+        return $this->parseMFInstrumentsToCSV($this->get("mf.instruments"));
     }
 
     /**
@@ -1117,12 +1088,12 @@ class KiteConnect
      */
     public function getGTTs(): array
     {
-        return $this->_format_response_array($this->_get("gtt.triggers"));
+        return $this->formatResponseArray($this->get("gtt.triggers"));
     }
 
     /**
      * Get detail of individual GTT order.
-     * @param string $trigger_id "trigger_id" Trigger ID
+     * @param string $triggerId Trigger ID
      * @return array
      * @throws DataException
      * @throws GeneralException
@@ -1132,14 +1103,14 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function getGTT(string $trigger_id): array
+    public function getGTT(string $triggerId): array
     {
-        return $this->_format_response($this->_get("gtt.trigger_info", ["trigger_id" => $trigger_id]));
+        return $this->formatResponse($this->get("gtt.trigger_info", ["trigger_id" => $triggerId]));
     }
 
     /**
      * Delete an GTT order
-     * @param string $trigger_id "trigger_id" Trigger ID
+     * @param string $triggerId "trigger_id" Trigger ID
      * @return mixed
      * @throws DataException
      * @throws GeneralException
@@ -1149,9 +1120,9 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function deleteGTT(string $trigger_id)
+    public function deleteGTT(string $triggerId)
     {
-        return $this->_delete("gtt.delete", ["trigger_id" => $trigger_id]);
+        return $this->delete("gtt.delete", ["trigger_id" => $triggerId]);
     }
 
     /**
@@ -1237,7 +1208,7 @@ class KiteConnect
     {
         $payload = $this->getGTTPayload($params);
 
-        return $this->_post("gtt.place", [
+        return $this->post("gtt.place", [
             "condition" => json_encode($payload["condition"]),
             "orders" => json_encode($payload["orders"]),
             "type" => $params["trigger_type"],
@@ -1274,20 +1245,26 @@ class KiteConnect
      *        ])
      *    ]
      * </code>
-     * @param int $trigger_id GTT Trigger ID
+     * @param int $triggerId GTT Trigger ID
      * @param array $params GTT Params. Check above for required fields.
      * @return mixed
      * @throws DataException
+     * @throws GeneralException
+     * @throws InputException
+     * @throws NetworkException
+     * @throws OrderException
+     * @throws PermissionException
+     * @throws TokenException
      */
-    public function modifyGTT(int $trigger_id, array $params)
+    public function modifyGTT(int $triggerId, array $params)
     {
         $payload = $this->getGTTPayload($params);
 
-        return $this->_put("gtt.modify", [
+        return $this->put("gtt.modify", [
             "condition" => json_encode($payload["condition"]),
             "orders" => json_encode($payload["orders"]),
             "type" => $params["trigger_type"],
-            "trigger_id" => $trigger_id,
+            "trigger_id" => $triggerId,
         ]);
     }
 
@@ -1297,9 +1274,9 @@ class KiteConnect
      * @return mixed
      * @throws Exception
      */
-    private function _format_response($data)
+    private function formatResponse($data)
     {
-        foreach (self::$_date_fields as $field) {
+        foreach (self::$dateFields as $field) {
             if (isset($data->$field) && strlen($data->$field) == 19) {
                 $data->$field = new DateTime($data->$field, new DateTimeZone("Asia/Kolkata"));
             }
@@ -1314,11 +1291,11 @@ class KiteConnect
      * @return array
      * @throws Exception
      */
-    private function _format_response_array($data): array
+    private function formatResponseArray($data): array
     {
         $results = [];
         foreach ($data as $k => $item) {
-            $results[$k] = $this->_format_response($item);
+            $results[$k] = $this->formatResponse($item);
         }
 
         return $results;
@@ -1329,7 +1306,7 @@ class KiteConnect
      *
      * @param string $route Route name mapped in self::$_routes.
      * @param array|null $params Request parameters.
-     * @param string $header_content
+     * @param string $headerContent
      * @return mixed                    Array or object (deserialised JSON).
      * @throws DataException
      * @throws GeneralException
@@ -1339,9 +1316,9 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    private function _get(string $route, $params = null, $header_content = '')
+    private function get(string $route, $params = null, $headerContent = '')
     {
-        return $this->_request($route, "GET", $params, $header_content);
+        return $this->request($route, "GET", $params, $headerContent);
     }
 
     /**
@@ -1349,7 +1326,7 @@ class KiteConnect
      *
      * @param string $route Route name mapped in self::$_routes.
      * @param array|null $params Request parameters.
-     * @param string $header_content
+     * @param string $headerContent
      * @return mixed                    Array or object (deserialised JSON).
      * @throws DataException
      * @throws GeneralException
@@ -1359,9 +1336,9 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    private function _post($route, $params = null, $header_content = '')
+    private function post($route, $params = null, $headerContent = '')
     {
-        return $this->_request($route, "POST", $params, $header_content);
+        return $this->request($route, "POST", $params, $headerContent);
     }
 
     /**
@@ -1369,7 +1346,7 @@ class KiteConnect
      *
      * @param string $route Route name mapped in self::$_routes.
      * @param array|null $params Request parameters.
-     * @param string $header_content
+     * @param string $headerContent
      * @return mixed                    Array or object (deserialised JSON).
      * @throws DataException
      * @throws GeneralException
@@ -1379,9 +1356,9 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    private function _put($route, $params = null, $header_content = '')
+    private function put($route, $params = null, $headerContent = '')
     {
-        return $this->_request($route, "PUT", $params, $header_content);
+        return $this->request($route, "PUT", $params, $headerContent);
     }
 
     /**
@@ -1389,7 +1366,7 @@ class KiteConnect
      *
      * @param string $route Route name mapped in self::$_routes.
      * @param array|null $params Request parameters.
-     * @param string $header_content
+     * @param string $headerContent
      * @return mixed  Array or object (deserialised JSON).
      * @throws DataException
      * @throws GeneralException
@@ -1399,9 +1376,9 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    private function _delete(string $route, array $params = null, string $header_content = '')
+    private function delete(string $route, array $params = null, string $headerContent = '')
     {
-        return $this->_request($route, "DELETE", $params, $header_content);
+        return $this->request($route, "DELETE", $params, $headerContent);
     }
 
     /**
@@ -1410,7 +1387,7 @@ class KiteConnect
      * @param string $route Route name mapped in self::$_routes.
      * @param string $method The HTTP method to send (GET, POST, PUT, DELETE).
      * @param array|null $params Request parameters.
-     * @param string $header_content Header content
+     * @param string $headerContent Header content
      * @return mixed Array or object (deserialised JSON).
      * @throws DataException
      * @throws GeneralException
@@ -1420,9 +1397,9 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    private function _request(string $route, string $method, ?array $params, string $header_content)
+    private function request(string $route, string $method, ?array $params, string $headerContent)
     {
-        $uri = $this->_routes[$route];
+        $uri = $this->routes[$route];
 
         // 'RESTful' URLs.
         if (strpos($uri, "{") !== false) {
@@ -1431,7 +1408,7 @@ class KiteConnect
             }
         }
 
-        $url = $this->_root . $uri;
+        $url = $this->baseUrl . $uri;
 
         if ($this->debug) {
             print("Request: " . $method . " " . $url . "\n");
@@ -1439,8 +1416,8 @@ class KiteConnect
         }
 
         // Set the header content type, if not sent set it to default
-        if ($header_content) {
-            $content_type = $header_content;
+        if ($headerContent) {
+            $content_type = $headerContent;
         } else {
             // default header content type of urlencoded
             $content_type = "Content-type: application/x-www-form-urlencoded";
@@ -1448,19 +1425,19 @@ class KiteConnect
         // Prepare the payload
         $request_headers = [
             $content_type,
-            "User-Agent: phpkiteconnect/" . self::_version,
+            "User-Agent: phpkiteconnect/" . self::VERSION,
             "X-Kite-Version: 3",
         ];
 
-        if ($this->api_key && $this->access_token) {
-            $request_headers[] = "Authorization: token " . $this->api_key . ":" . $this->access_token;
+        if ($this->apiKey && $this->accessToken) {
+            $request_headers[] = "Authorization: token " . $this->apiKey . ":" . $this->accessToken;
         }
         // Make the HTTP request.
         if (function_exists("curl_init")) {
-            $resp = $this->_curl($url, $method, $request_headers, $params);
+            $resp = $this->curl($url, $method, $request_headers, $params);
         } else {
             trigger_error("The php curl module is not installed. Please isntall it for better performance.", E_USER_WARNING);
-            $resp = $this->_http_socket($url, $method, $request_headers, $params);
+            $resp = $this->httpSocket($url, $method, $request_headers, $params);
         }
         $headers = $resp["headers"];
         $result = $resp["body"];
@@ -1479,13 +1456,13 @@ class KiteConnect
             // Token error.
             if ($json->status == "error") {
                 if ($headers["status_code"] == 403) {
-                    if ($this->session_hook) {
-                        $this->session_hook->call($this);
+                    if ($this->sessionHook) {
+                        $this->sessionHook->call($this);
 
                         return null;
                     }
                 }
-                $this->_throwSuitableException($headers, $json);
+                $this->throwSuitableException($headers, $json);
             }
 
             return $json->data;
@@ -1506,7 +1483,7 @@ class KiteConnect
      * @return array                    Returns an array with response "headers" and "body".
      * @throws NetworkException
      */
-    private function _http_socket(string $url, string $method, ?array $headers, ?array $params = null): array
+    private function httpSocket(string $url, string $method, ?array $headers, ?array $params = null): array
     {
         // Prepare the payload.
         $payload = http_build_query($params ? $params : []);
@@ -1540,7 +1517,7 @@ class KiteConnect
             throw new NetworkException($error_message);
         }
 
-        $response_headers = $this->_parseHeaders($http_response_header);
+        $response_headers = $this->parseHeaders($http_response_header);
 
         // Content is gzipped. Uncompress.
         if (isset($response_headers["content-encoding"]) && stristr($response_headers["content-encoding"], "gzip")) {
@@ -1560,7 +1537,7 @@ class KiteConnect
      * @return array                    Returns an array with response "headers" and "body".
      * @throws NetworkException
      */
-    private function _curl(string $url, string $method, ?array $headers, $params = null): array
+    private function curl(string $url, string $method, ?array $headers, $params = null): array
     {
         $ch = curl_init();
 
@@ -1629,7 +1606,7 @@ class KiteConnect
      * @return array
      * @throws Exception
      */
-    private function _parseInstrumentsCSV(string $csv): array
+    private function parseInstrumentsToCSV(string $csv): array
     {
         $lines = explode("\n", $csv);
 
@@ -1676,7 +1653,7 @@ class KiteConnect
      * @return array
      * @throws Exception
      */
-    private function _parseMFInstrumentsCSV(string $csv): array
+    private function parseMFInstrumentsToCSV(string $csv): array
     {
         $lines = explode("\n", $csv);
 
@@ -1724,7 +1701,7 @@ class KiteConnect
      * @param string $headers Header string from an HTTP request.
      * @return array
      */
-    private function _parseHeaders(string $headers): array
+    private function parseHeaders(string $headers): array
     {
         $head = ["status_code" => 200];
         /** @var array $headers */
@@ -1758,7 +1735,7 @@ class KiteConnect
      * @throws InputException
      * @throws TokenException
      */
-    private function _throwSuitableException(array $headers, $json): void
+    private function throwSuitableException(array $headers, $json): void
     {
         switch ($json->error_type) {
             case 'DataException':

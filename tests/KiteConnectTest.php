@@ -30,4 +30,24 @@ class KiteConnectTest extends TestCase
         $loginUrl = $kiteConnect->getLoginURL();
         $this->assertIsString($loginUrl);
     }
+
+    /**
+     * @test
+     * @return void
+     */
+    public function it_can_be_instantiated_with_token(): void
+    {
+        $kiteConnect = new KiteConnect('token');
+        $this->assertInstanceOf(KiteConnect::class, $kiteConnect);
+    }
+
+    /**
+     * @test
+     * @return void
+     */
+    public function it_can_be_instantiated_with_token_and_access_token(): void
+    {
+        $kiteConnect = new KiteConnect('token', 'access_token');
+        $this->assertInstanceOf(KiteConnect::class, $kiteConnect);
+    }
 }
