@@ -1,5 +1,5 @@
 # The Kite Connect API PHP client - v3
-The official PHP client for communicating with the [Kite Connect API](https://kite.trade).
+The Unofficial PHP client for communicating with the [Kite Connect API](https://kite.trade).
 
 Kite Connect is a set of REST-like APIs that expose many capabilities required to build a complete investment and trading platform. Execute orders in real time, manage user portfolio and more, with the simple HTTP API collection.
 
@@ -10,12 +10,15 @@ Kite Connect is a set of REST-like APIs that expose many capabilities required t
 - [Kite Connect HTTP API documentation](https://kite.trade/docs/connect/v3)
 
 ## Installing
-Download `kiteconnect.php` and `include()` it in your application.
+You can install the package via composer:
+```bash
+composer require zerodha/phpkiteconnect
+```
 
 ## Usage
 ```php
 <?php
-    include dirname(__FILE__)."/kiteconnect.php";
+    use KiteConnect\KiteConnect;
 
     // Initialise.
     $kite = new KiteConnect("your_api_key");
@@ -25,10 +28,8 @@ Download `kiteconnect.php` and `include()` it in your application.
     // user to $kite->login_url()
     try {
         $user = $kite->generateSession("request_token_obtained", "your_api_secret");
-
         echo "Authentication successful. \n";
         print_r($user);
-
         $kite->setAccessToken($user->access_token);
     } catch(Exception $e) {
         echo "Authentication failed: ".$e->getMessage();
@@ -42,7 +43,7 @@ Download `kiteconnect.php` and `include()` it in your application.
     print_r($kite->getPositions());
 
     // Place order.
-    $o = $kite->placeOrder("regular", [
+    $order = $kite->placeOrder("regular", [
         "tradingsymbol" => "INFY",
         "exchange" => "NSE",
         "quantity" => 1,
@@ -51,7 +52,7 @@ Download `kiteconnect.php` and `include()` it in your application.
         "product" => "NRML"
     ]);
 
-    echo "Order id is ".$o->order_id;
+    echo "Order id is ".$order->order_id;
 ?>
 ```
 
@@ -60,3 +61,8 @@ Refer to the [PHP client documentation](https://kite.trade/docs/phpkiteconnect/v
 ## Changelog
 [Check CHANGELOG.md](CHANGELOG.md)
 
+## Stability
+This package is just the adding composer support to previous SDE kit.
+The Pull request to official package is already in progress.
+This package won't be maintained Once PR on the official repository has been merged.
+[Pull request](https://github.com/zerodha/phpkiteconnect/pull/14)
