@@ -103,54 +103,61 @@ class KiteConnect {
 	private $_root = "https://api.kite.trade";
 	private static $_login = "https://kite.trade/connect/login";
 	private static $_date_fields = ["order_timestamp", "exchange_timestamp", "created", "last_instalment", "fill_timestamp", "timestamp", "last_trade_time"];
-	const _version = 3.0;
+	const _version = "3.2.0";
 
 	// API route map.
 	private $_routes = [
-        "api.token" => "/session/token",
-        "api.token.invalidate" => "/session/token",
-        "api.token.renew" => "/session/refresh_token",
-        "user.profile" => "/user/profile",
-        "user.margins" => "/user/margins",
-        "user.margins.segment" => "/user/margins/{segment}",
+		"api.token" => "/session/token",
+		"api.token.invalidate" => "/session/token",
+		"api.token.renew" => "/session/refresh_token",
+		"user.profile" => "/user/profile",
+		"user.margins" => "/user/margins",
+		"user.margins.segment" => "/user/margins/{segment}",
 
-        "orders" => "/orders",
-        "trades" => "/trades",
+		"orders" => "/orders",
+		"trades" => "/trades",
 
-        "order.info" => "/orders/{order_id}",
-        "order.place" => "/orders/{variety}",
-        "order.modify" => "/orders/{variety}/{order_id}",
-        "order.cancel" => "/orders/{variety}/{order_id}",
-        "order.trades" => "/orders/{order_id}/trades",
+		"order.info" => "/orders/{order_id}",
+		"order.place" => "/orders/{variety}",
+		"order.modify" => "/orders/{variety}/{order_id}",
+		"order.cancel" => "/orders/{variety}/{order_id}",
+		"order.trades" => "/orders/{order_id}/trades",
+		"order.margins" => "/margins/orders",
 
-        "portfolio.positions" => "/portfolio/positions",
-        "portfolio.holdings" => "/portfolio/holdings",
-        "portfolio.positions.convert" => "/portfolio/positions",
+		"portfolio.positions" => "/portfolio/positions",
+		"portfolio.holdings" => "/portfolio/holdings",
+		"portfolio.positions.convert" => "/portfolio/positions",
 
-        # MF api endpoints
-        "mf.orders" => "/mf/orders",
-        "mf.order.info" => "/mf/orders/{order_id}",
-        "mf.order.place" => "/mf/orders",
-        "mf.order.cancel" => "/mf/orders/{order_id}",
+		# MF api endpoints
+		"mf.orders" => "/mf/orders",
+		"mf.order.info" => "/mf/orders/{order_id}",
+		"mf.order.place" => "/mf/orders",
+		"mf.order.cancel" => "/mf/orders/{order_id}",
 
-        "mf.sips" => "/mf/sips",
-        "mf.sip.info" => "/mf/sips/{sip_id}",
-        "mf.sip.place" => "/mf/sips",
-        "mf.sip.modify" => "/mf/sips/{sip_id}",
-        "mf.sip.cancel" => "/mf/sips/{sip_id}",
+		"mf.sips" => "/mf/sips",
+		"mf.sip.info" => "/mf/sips/{sip_id}",
+		"mf.sip.place" => "/mf/sips",
+		"mf.sip.modify" => "/mf/sips/{sip_id}",
+		"mf.sip.cancel" => "/mf/sips/{sip_id}",
 
-        "mf.holdings" => "/mf/holdings",
-        "mf.instruments" => "/mf/instruments",
+		"mf.holdings" => "/mf/holdings",
+		"mf.instruments" => "/mf/instruments",
 
-        "market.instruments.all" => "/instruments",
-        "market.instruments" => "/instruments/{exchange}",
-        "market.margins" => "/margins/{segment}",
-        "market.historical" => "/instruments/historical/{instrument_token}/{interval}",
-        "market.trigger_range" => "/instruments/trigger_range/{transaction_type}",
+		"market.instruments.all" => "/instruments",
+		"market.instruments" => "/instruments/{exchange}",
+		"market.margins" => "/margins/{segment}",
+		"market.historical" => "/instruments/historical/{instrument_token}/{interval}",
+		"market.trigger_range" => "/instruments/trigger_range/{transaction_type}",
 
-        "market.quote" => "/quote",
-        "market.quote.ohlc" => "/quote/ohlc",
-        "market.quote.ltp" => "/quote/ltp",
+		"market.quote" => "/quote",
+		"market.quote.ohlc" => "/quote/ohlc",
+		"market.quote.ltp" => "/quote/ltp",
+
+		"gtt.triggers" => "/gtt/triggers",
+		"gtt.trigger_info" => "/gtt/triggers/{trigger_id}",
+		"gtt.place" => "/gtt/triggers",
+		"gtt.modify" => "/gtt/triggers/{trigger_id}",
+		"gtt.delete" => "/gtt/triggers/{trigger_id}"
 	];
 
 
@@ -162,6 +169,54 @@ class KiteConnect {
 	public $session_hook = null;
 	public $micro_cache = true;
 
+	// Constants
+	// Products
+	const PRODUCT_MIS = "MIS";
+	const PRODUCT_CNC = "CNC";
+	const PRODUCT_NRML = "NRML";
+	const PRODUCT_CO = "CO";
+	const PRODUCT_BO = "BO";
+
+	// Order types
+	const ORDER_TYPE_MARKET = "MARKET";
+	const ORDER_TYPE_LIMIT = "LIMIT";
+	const ORDER_TYPE_SLM = "SL-M";
+	const ORDER_TYPE_SL = "SL";
+
+	// Varities
+	const VARIETY_REGULAR = "regular";
+	const VARIETY_BO = "bo";
+	const VARIETY_CO = "co";
+	const VARIETY_AMO = "amo";
+
+	// Transaction type
+	const TRANSACTION_TYPE_BUY = "BUY";
+	const TRANSACTION_TYPE_SELL = "SELL";
+
+	// Validity
+	const VALIDITY_DAY = "DAY";
+	const VALIDITY_IOC = "IOC";
+
+	// Margins segments
+	const MARGIN_EQUITY = "equity";
+	const MARGIN_COMMODITY = "commodity";
+
+	const STATUS_CANCELLED = "CANCELLED";
+	const STATUS_REJECTED = "REJECTED";
+	const STATUS_COMPLETE = "COMPLETE";
+
+	// GTT Types
+	const GTT_TYPE_OCO = "two-leg";
+	const GTT_TYPE_SINGLE = "single";
+
+	// GTT Statuses
+	const GTT_STATUS_ACTIVE = "active";
+	const GTT_STATUS_TRIGGERED = "triggered";
+	const GTT_STATUS_DISABLED = "disabled";
+	const GTT_STATUS_EXPIRED = "expired";
+	const GTT_STATUS_CANCELLED = "cancelled";
+	const GTT_STATUS_REJECTED = "rejected";
+	const GTT_STATUS_DELETED = "deleted";
 
 	/**
 	 * Initialise a new Kite Connect client instance.
@@ -434,10 +489,32 @@ class KiteConnect {
 
 	/**
 	 * Get history of the individual order.
+	 * @param string $order_id	ID of the order (optional) whose trades
+	 * 							are to be retrieved. If no `order_id` is
+	 * 							specified, all trades for the day are returned.
 	 * @return array
 	 */
 	public function getOrderHistory($order_id) {
 		return $this->_format_response_array($this->_get("order.info", ["order_id" => $order_id]));
+	}
+
+	/**
+	 * Fetch order margin
+	 *
+	 * @param array $params   Order params to fetch margin detail
+	 * 				$params string 	   "exchange" Name of the exchange(eg. NSE, BSE, NFO, CDS, MCX)
+	 *              $params string 	   "tradingsymbol" Trading symbol of the instrument
+	 *              $params string 	   "transaction_type" eg. BUY, SELL 
+	 *              $params string 	   "variety" Order variety (regular, amo, bo, co etc.)
+	 *              $params string 	   "product" Margin product to use for the order
+	 *              $params string 	   "order_type" Order type (MARKET, LIMIT etc.)
+	 *              $params int 	   "quantity" Quantity of the order
+	 *              $params float|null "price" Price at which the order is going to be placed (LIMIT orders)
+	 *              $params float|null "trigger_price" Trigger price (for SL, SL-M, CO orders)
+	 * @return array
+	 */
+	public function orderMargins($params) {
+		return $this->_post("order.margins", json_encode($params), 'Content-type: application/json');
 	}
 
 	/**
@@ -593,12 +670,14 @@ class KiteConnect {
 	 * 				$params bool "continuous" is a bool flag to get continuous data for futures and options instruments. Defaults to false.
 	 * @return array
 	 */
-	public function getHistoricalData($instrument_token, $interval, $from, $to, $continuous = false) {
+	public function getHistoricalData($instrument_token, $interval, $from, $to, $continuous = false, $oi = false) {
 		$params = [
 			"instrument_token" => $instrument_token,
 			"interval" => $interval,
 			"from" => $from,
-			"to" => $to
+			"to" => $to,
+			"continuous" => $continuous,
+			"oi" => $oi
 		];
 
 		if ($from instanceof DateTime) {
@@ -609,10 +688,16 @@ class KiteConnect {
 			$params["to"] = $to->format("Y-m-d H:i:s");
 		}
 
-		if (empty($params["continuous"]) || $continuous == false) {
+		if ($params["continuous"] == false) {
 			$params["continuous"] = 0;
 		} else {
 			$params["continuous"] = 1;
+		}
+
+		if ($params["oi"] == false) {
+			$params["oi"] = 0;
+		} else {
+			$params["oi"] = 1;
 		}
 
 		$data = $this->_get("market.historical", $params);
@@ -626,6 +711,9 @@ class KiteConnect {
 			$r->low = $j[3];
 			$r->close = $j[4];
 			$r->volume = $j[5];
+			if (!empty($j[6])) {
+				$r->oi = $j[6];
+			}
 
 			$records[] = $r;
 		}
@@ -759,6 +847,148 @@ class KiteConnect {
 
 
 	/**
+	 * Get the list of all orders placed for the day.
+	 * @return array
+	 */
+	public function getGTTs() {
+		return $this->_format_response_array($this->_get("gtt.triggers"));
+	}
+
+	/**
+	 * Get detail of individual GTT order.
+	 * @param string $trigger_id			"trigger_id" Trigger ID
+	 * @return array
+	 */
+	public function getGTT($trigger_id) {
+		return $this->_format_response($this->_get("gtt.trigger_info", ["trigger_id" => $trigger_id]));
+	}
+
+	/**
+	 * Delete an GTT order
+	 * @param string $trigger_id			"trigger_id" Trigger ID
+	 * @return void
+	 */
+	public function deleteGTT($trigger_id) {
+		return $this->_delete("gtt.delete", ["trigger_id" => $trigger_id]);
+	}
+
+	private function getGTTPayload($params) {
+		if ($params["trigger_type"] == self::GTT_TYPE_OCO && count($params["trigger_values"]) != 2) {
+			throw new DataException("Invalid `trigger_values` for `OCO` order type");
+		}
+		if ($params["trigger_type"] == self::GTT_TYPE_SINGLE && count($params["trigger_values"]) != 1) {
+			throw new DataException("Invalid `trigger_values` for `single` order type");
+		}
+		$condition = [
+			"exchange" => $params["exchange"],
+			"tradingsymbol" => $params["tradingsymbol"],
+			"trigger_values" => $params["trigger_values"],
+			"last_price" => (float)$params["last_price"]
+		];
+		$orders = array();
+		foreach ($params["orders"] as &$o) {
+			array_push($orders, [
+				"transaction_type" => $o["transaction_type"],
+				"order_type" => $o["order_type"],
+				"product" => $o["product"],
+				"quantity" => (int)$o["quantity"],
+				"price" => (float)($o["price"]),
+				"exchange" => $params["exchange"],
+				"tradingsymbol" => $params["tradingsymbol"]
+			]);
+		}
+		return [
+			"condition" => $condition,
+			"orders" => $orders
+		];
+	}
+
+	/**
+	 * Place a GTT. Check [GTT documentation](https://kite.trade/docs/connect/v3/gtt/#placing-orders) for details.
+	 * <code>
+	 * $params = [
+	 * 		// GTT type, its either `$kite::GTT_TYPE_OCO` or `$kite::GTT_TYPE_SINGLE`.
+	 * 		"trigger_type" => $kite::GTT_TYPE_OCO,
+	 * 		// Tradingsymbol of the instrument (ex. RELIANCE, INFY).
+	 * 		"tradingsymbol" => "SBIN",
+	 * 		// Exchange in which instrument is listed (NSE, BSE, NFO, BFO, CDS, MCX).
+	 * 		"exchange" => "NSE",
+	 * 		// List of trigger values, number of items depends on trigger type.
+	 * 		"trigger_values" => array(300, 400),
+	 * 		// Price at which trigger is created. This is usually the last price of the instrument.
+	 * 		"last_price" => 318,
+	 * 		// List of orders. Check [order params](https://kite.trade/docs/connect/v3/orders/#regular-order-parameters) for all available params.
+	 * 		"orders" => array([
+	 * 			"transaction_type" => $kite::TRANSACTION_TYPE_SELL,
+	 * 			"quantity" => 1,
+	 * 			"product" => $kite::PRODUCT_CNC,
+	 * 			"order_type" => $kite::ORDER_TYPE_LIMIT,
+	 * 			"price" => 300
+	 * 		], [
+	 * 			"transaction_type" => $kite::TRANSACTION_TYPE_SELL,
+	 * 			"quantity" => 1,
+	 * 			"product" => $kite::PRODUCT_CNC,
+	 * 			"order_type" => $kite::ORDER_TYPE_LIMIT,
+	 * 			"price" => 400
+	 * 		])
+	 * 	]
+	 * </code>
+	 *
+	 * @param array $params	GTT Params. Check above for required fields.
+	 */
+	public function placeGTT($params) {
+		$payload = $this->getGTTPayload($params);
+		return $this->_post("gtt.place", [
+			"condition" => json_encode($payload["condition"]),
+			"orders" => json_encode($payload["orders"]),
+			"type" => $params["trigger_type"]
+		]);
+	}
+
+	/**
+	 * Modify GTT. Check [GTT documentation](https://kite.trade/docs/connect/v3/gtt/#modify-order) for details.
+	 * <code>
+	 * $params = [
+	 * 		// GTT type, its either `$kite::GTT_TYPE_OCO` or `$kite::GTT_TYPE_SINGLE`.
+	 * 		"trigger_type" => $kite::GTT_TYPE_OCO,
+	 * 		// Tradingsymbol of the instrument (ex. RELIANCE, INFY).
+	 * 		"tradingsymbol" => "SBIN",
+	 * 		// Exchange in which instrument is listed (NSE, BSE, NFO, BFO, CDS, MCX).
+	 * 		"exchange" => "NSE",
+	 * 		// List of trigger values, number of items depends on trigger type.
+	 * 		"trigger_values" => array(300, 400),
+	 * 		// Price at which trigger is created. This is usually the last price of the instrument.
+	 * 		"last_price" => 318,
+	 * 		// List of orders. Check [order params](https://kite.trade/docs/connect/v3/orders/#regular-order-parameters) for all available params.
+	 * 		"orders" => array([
+	 * 			"transaction_type" => $kite::TRANSACTION_TYPE_SELL,
+	 * 			"quantity" => 1,
+	 * 			"product" => $kite::PRODUCT_CNC,
+	 * 			"order_type" => $kite::ORDER_TYPE_LIMIT,
+	 * 			"price" => 300
+	 * 		], [
+	 * 			"transaction_type" => $kite::TRANSACTION_TYPE_SELL,
+	 * 			"quantity" => 1,
+	 * 			"product" => $kite::PRODUCT_CNC,
+	 * 			"order_type" => $kite::ORDER_TYPE_LIMIT,
+	 * 			"price" => 400
+	 * 		])
+	 * 	]
+	 * </code>
+	 * @param int $trigger_id			GTT Trigger ID
+	 * @param array $params				GTT Params. Check above for required fields.
+	 */
+	public function modifyGTT($trigger_id, $params) {
+		$payload = $this->getGTTPayload($params);
+		return $this->_put("gtt.modify", [
+			"condition" => json_encode($payload["condition"]),
+			"orders" => json_encode($payload["orders"]),
+			"type" => $params["trigger_type"],
+			"trigger_id" => $trigger_id
+		]);
+	}
+
+	/**
 	 * Format response array, For example datetime string to DateTime object
 	 */
 	private function _format_response($data) {
@@ -790,8 +1020,8 @@ class KiteConnect {
 	 * @param array|null $params		Request parameters.
 	 * @return mixed					Array or object (deserialised JSON).
 	 */
-	private function _get($route, $params=null) {
-		return $this->_request($route, "GET", $params);
+	private function _get($route, $params=null, $header_content=null) {
+		return $this->_request($route, "GET", $params, $header_content);
 	}
 
 	/**
@@ -801,8 +1031,8 @@ class KiteConnect {
 	 * @param array|null $params		Request parameters.
 	 * @return mixed					Array or object (deserialised JSON).
 	 */
-	private function _post($route, $params=null) {
-		return $this->_request($route, "POST", $params);
+	private function _post($route, $params=null, $header_content=null) {
+		return $this->_request($route, "POST", $params, $header_content);
 	}
 
 	/**
@@ -812,8 +1042,8 @@ class KiteConnect {
 	 * @param array|null $params		Request parameters.
 	 * @return mixed					Array or object (deserialised JSON).
 	 */
-	private function _put($route, $params=null) {
-		return $this->_request($route, "PUT", $params);
+	private function _put($route, $params=null, $header_content=null) {
+		return $this->_request($route, "PUT", $params, $header_content);
 	}
 
 	/**
@@ -823,8 +1053,8 @@ class KiteConnect {
 	 * @param array|null $params		Request parameters.
 	 * @return mixed					Array or object (deserialised JSON).
 	 */
-	private function _delete($route, $params=null) {
-		return $this->_request($route, "DELETE", $params);
+	private function _delete($route, $params=null, $header_content=null) {
+		return $this->_request($route, "DELETE", $params, $header_content);
 	}
 
 	/**
@@ -835,7 +1065,7 @@ class KiteConnect {
 	 * @param array|null $params		Request parameters.
 	 * @return mixed					Array or object (deserialised JSON).
 	 */
-	private function _request($route, $method, $params=null) {
+	private function _request($route, $method, $params, $header_content) {
 		$uri = $this->_routes[$route];
 
 		// 'RESTful' URLs.
@@ -852,17 +1082,21 @@ class KiteConnect {
 			var_dump($params);
 		}
 
-		// Prepare the payload.
-		$request_headers = ["Content-type: application/x-www-form-urlencoded",
-					"Accept-Encoding: gzip, deflate",
-					"Accept-Charset: UTF-8,*;q=0.5",
+		// Set the header content type, if not sent set it to default
+		if ($header_content){
+			$content_type = $header_content;
+		} else {
+			// default header content type of urlencoded
+			$content_type = "Content-type: application/x-www-form-urlencoded";
+		}
+		// Prepare the payload
+		$request_headers[] = [$content_type,
 					"User-Agent: phpkiteconnect/".self::_version,
 					"X-Kite-Version: 3"];
-
+		
 		if ($this->api_key && $this->access_token) {
 			$request_headers[] = "Authorization: token " . $this->api_key . ":" . $this->access_token;
 		}
-
 		// Make the HTTP request.
 		if(function_exists("curl_init")) {
 			$resp = $this->_curl($url, $method, $request_headers, $params);
@@ -876,7 +1110,6 @@ class KiteConnect {
 		if($this->debug) {
 			print("Response :" . $result . "\n");
 		}
-
 		if(empty($headers["content-type"])) {
 			throw new DataException("Unknown content-type in response");
 		} else if(strpos($headers["content-type"], "application/json") !== false) {
@@ -893,7 +1126,6 @@ class KiteConnect {
 						return;
 					}
 				}
-
 				// Check if the exception class is defined.
 				if(class_exists($json->error_type)) {
 					throw new $json->error_type($json->message, $headers["status_code"]);
@@ -984,6 +1216,9 @@ class KiteConnect {
 		$payload = null;
 		if($payload = http_build_query($params && is_array($params) ? $params : [])) {
 			$payload = preg_replace("/%5B(\d+?)%5D/", "", $payload);
+		} else if(json_decode($params)){
+			// send json param payload 
+			$payload = $params;
 		}
 
 		if($method == "POST" || $method == "PUT") {
