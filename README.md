@@ -1,5 +1,5 @@
 # The Kite Connect API PHP client - v3
-The Unofficial PHP client for communicating with the [Kite Connect API](https://kite.trade).
+The Official PHP client for communicating with the [Kite Connect API](https://kite.trade).
 
 Kite Connect is a set of REST-like APIs that expose many capabilities required to build a complete investment and trading platform. Execute orders in real time, manage user portfolio and more, with the simple HTTP API collection.
 
@@ -60,9 +60,3 @@ Refer to the [PHP client documentation](https://kite.trade/docs/phpkiteconnect/v
 
 ## Changelog
 [Check CHANGELOG.md](CHANGELOG.md)
-
-## Stability
-This package is just the adding composer support to previous SDE kit.
-The Pull request to official package is already in progress.
-This package won't be maintained Once PR on the official repository has been merged.
-[Pull request](https://github.com/zerodha/phpkiteconnect/pull/14)
