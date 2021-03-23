@@ -1,5 +1,5 @@
 {
-    "name": "ranjanrak/phpkiteconnect",
+    "name": "zerodha/phpkiteconnect",
     "description": "The PHP client library for the Kite Connect trading APIs Resources",
     "keywords": [
         "zerodha",
