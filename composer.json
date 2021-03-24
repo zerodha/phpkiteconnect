@@ -1,6 +1,7 @@
 {
     "name": "zerodha/phpkiteconnect",
     "description": "The PHP client library for the Kite Connect trading APIs Resources",
+    "type": "library",
     "keywords": [
         "zerodha",
         "phpkiteconnect"
@@ -46,6 +47,6 @@
     "config": {
         "sort-packages": true
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true
 }
