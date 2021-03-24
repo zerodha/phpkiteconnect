@@ -30,7 +30,7 @@
     },
     "autoload": {
         "psr-4": {
-            "KiteConnect\\": "src"
+            "KiteConnect\\": "src/"
         }
     },
     "autoload-dev": {
@@ -47,6 +47,6 @@
     "config": {
         "sort-packages": true
     },
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "prefer-stable": true
 }
