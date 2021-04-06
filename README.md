@@ -3,13 +3,15 @@ The Official PHP client for communicating with the [Kite Connect API](https://ki
 
 Kite Connect is a set of REST-like APIs that expose many capabilities required to build a complete investment and trading platform. Execute orders in real time, manage user portfolio and more, with the simple HTTP API collection.
 
-[Zerodha Technology](http://zerodha.com) (c) 2018. Licensed under the MIT License.
+[Zerodha Technology](http://zerodha.com) (c) 2021. Licensed under the MIT License.
 
 ## Documentation
 - [PHP client documentation](https://kite.trade/docs/phpkiteconnect/v3)
 - [Kite Connect HTTP API documentation](https://kite.trade/docs/connect/v3)
 
 ## Installing
+Minimum PHP version required for this project is 7.3.
+
 You can install the package via composer:
 ```bash
 composer require zerodha/phpkiteconnect
@@ -57,6 +59,10 @@ composer require zerodha/phpkiteconnect
     echo "Order id is ".$order->order_id;
 ?>
 ```
+
+## Examples
+
+Check [examples folder](https://github.com/ranjanrak/phpkiteconnect/tree/main/examples) for more examples.
 
 Refer to the [PHP client documentation](https://kite.trade/docs/phpkiteconnect/v3) for the complete list of supported methods.
 
