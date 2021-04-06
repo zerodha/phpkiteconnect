@@ -10,7 +10,9 @@ Kite Connect is a set of REST-like APIs that expose many capabilities required t
 - [Kite Connect HTTP API documentation](https://kite.trade/docs/connect/v3)
 
 ## Installing
-Minimum PHP version required for this project is 7.3.
+### Requirements
+1. Install [PHP](https://www.php.net/manual/en/install.php) version 7.3 or higher.
+2. Install [Composer](https://getcomposer.org/download/), which is used to install PHP packages.
 
 You can install the package via composer:
 ```bash
@@ -62,7 +64,7 @@ composer require zerodha/phpkiteconnect
 
 ## Examples
 
-Check [examples folder](https://github.com/ranjanrak/phpkiteconnect/tree/main/examples) for more examples.
+Check [examples folder](https://github.com/zerodha/phpkiteconnect/tree/master/examples) for more examples.
 
 Refer to the [PHP client documentation](https://kite.trade/docs/phpkiteconnect/v3) for the complete list of supported methods.
 
