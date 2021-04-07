@@ -1,5 +1,11 @@
-New features
-=============
+# Changelog
+
+All notable changes to `phpkiteconnect` will be documented in this file.
+
+## 1.0.0 - 202X-XX-XX
+
+- initial release
+#### New Features
 - method: `getProfile`
 - method: `getOHLC`
 - method: `getLTP`
@@ -42,9 +48,12 @@ API method name changes
 
 Params and other changes
 ========================
+- `placeOrder` method takes all the params as array including `variety`
+- `modifyOrder` method takes all the params as array including `variety` and `order_id`
+- `cancelOrder` method takes all the params as array
 - `convertPosition` method takes all the params as array
 - `getHistoricalData` method takes all the params as array
-- [Changes in `generateSession` response structure](https://kite.trade/docs/connect/v3/user/#response-attributes)
+- [Changes in `requestAccessToken` response structure](https://kite.trade/docs/connect/v3/user/#response-attributes)
 - [Changes in `getPositions` response structure](https://kite.trade/docs/connect/v3/portfolio/#response-attributes_1)
 - [Changes in `getQuote` response structure](https://kite.trade/docs/connect/v3/market-quotes/#retrieving-full-market-quotes)
 - [Changes in `placeOrder` params](https://kite.trade/docs/connect/v3/orders/#bracket-order-bo-parameters)

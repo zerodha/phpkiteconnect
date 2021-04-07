@@ -1,21 +1,30 @@
 # The Kite Connect API PHP client - v3
-The official PHP client for communicating with the [Kite Connect API](https://kite.trade).
+The Official PHP client for communicating with the [Kite Connect API](https://kite.trade).
 
 Kite Connect is a set of REST-like APIs that expose many capabilities required to build a complete investment and trading platform. Execute orders in real time, manage user portfolio and more, with the simple HTTP API collection.
 
-[Zerodha Technology](http://zerodha.com) (c) 2018. Licensed under the MIT License.
+[Zerodha Technology](http://zerodha.com) (c) 2021. Licensed under the MIT License.
 
 ## Documentation
 - [PHP client documentation](https://kite.trade/docs/phpkiteconnect/v3)
 - [Kite Connect HTTP API documentation](https://kite.trade/docs/connect/v3)
 
 ## Installing
-Download `kiteconnect.php` and `include()` it in your application.
+### Requirements
+1. Install [PHP](https://www.php.net/manual/en/install.php) version 7.3 or higher.
+2. Install [Composer](https://getcomposer.org/download/), which is used to install PHP packages.
+
+You can install the package via composer:
+```bash
+composer require zerodha/phpkiteconnect
+```
 
 ## Usage
 ```php
 <?php
-    include dirname(__FILE__)."/kiteconnect.php";
+    require_once __DIR__ . '/vendor/autoload.php';
+    
+    use KiteConnect\KiteConnect;
 
     // Initialise.
     $kite = new KiteConnect("your_api_key");
@@ -25,10 +34,8 @@ Download `kiteconnect.php` and `include()` it in your application.
     // user to $kite->login_url()
     try {
         $user = $kite->generateSession("request_token_obtained", "your_api_secret");
-
         echo "Authentication successful. \n";
         print_r($user);
-
         $kite->setAccessToken($user->access_token);
     } catch(Exception $e) {
         echo "Authentication failed: ".$e->getMessage();
@@ -42,7 +49,7 @@ Download `kiteconnect.php` and `include()` it in your application.
     print_r($kite->getPositions());
 
     // Place order.
-    $o = $kite->placeOrder("regular", [
+    $order = $kite->placeOrder("regular", [
         "tradingsymbol" => "INFY",
         "exchange" => "NSE",
         "quantity" => 1,
@@ -51,12 +58,20 @@ Download `kiteconnect.php` and `include()` it in your application.
         "product" => "NRML"
     ]);
 
-    echo "Order id is ".$o->order_id;
+    echo "Order id is ".$order->order_id;
 ?>
 ```
 
+## Examples
+
+Check [examples folder](https://github.com/zerodha/phpkiteconnect/tree/master/examples) for more examples.
+
 Refer to the [PHP client documentation](https://kite.trade/docs/phpkiteconnect/v3) for the complete list of supported methods.
+
+## Run unit tests
+```
+phpunit tests/KiteConnectTest.php
+```
 
 ## Changelog
 [Check CHANGELOG.md](CHANGELOG.md)
-
