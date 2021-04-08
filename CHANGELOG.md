@@ -2,6 +2,14 @@
 
 All notable changes to `phpkiteconnect` will be documented in this file.
 
+## 4.0.0 - 2021-04-06
+- Major refactor to project structure and code
+- PHP support 7.3+
+- Integrated composer packagist 
+- Integrated Guzzle HTTP client ditching CURL
+- Units Tests
+
+
 ## 1.0.0 - 202X-XX-XX
 
 - initial release
