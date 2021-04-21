@@ -9,6 +9,7 @@ use DateTime;
 use DateTimeZone;
 use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\RequestException;
 use KiteConnect\Exception\DataException;
 use KiteConnect\Exception\GeneralException;
@@ -227,7 +228,7 @@ class KiteConnect
         string $root = null,
         bool $debug = false,
         int $timeout = 7,
-        \GuzzleHttp\Client $guzzleClient = null
+        GuzzleClient $guzzleClient = null
     ) {
         $this->apiKey = $apiKey;
         $this->accessToken = $accessToken;
@@ -405,7 +406,7 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function getProfile(): mixed
+    public function getProfile()
     {
         return $this->get("user.profile");
     }
@@ -423,7 +424,7 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function getMargins(?string $segment = null): mixed
+    public function getMargins(?string $segment = null)
     {
         if (! $segment) {
             return $this->get("user.margins");
@@ -643,7 +644,7 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function getPositions(): mixed
+    public function getPositions()
     {
         return $this->get("portfolio.positions");
     }
@@ -767,7 +768,7 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function getOHLC(array $instruments): mixed
+    public function getOHLC(array $instruments)
     {
         return $this->get("market.quote.ohlc", ["i" => $instruments]);
     }
@@ -786,7 +787,7 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function getLTP(array $instruments): mixed
+    public function getLTP(array $instruments)
     {
         return $this->get("market.quote.ltp", ["i" => $instruments]);
     }
@@ -910,7 +911,7 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function getMFOrders(?string $orderId = null): mixed
+    public function getMFOrders(?string $orderId = null)
     {
         if ($orderId) {
             return $this->formatResponse($this->get("mf.order.info", ["order_id" => $orderId]));
@@ -988,7 +989,7 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function getMFSIPS(?string $sip_id = null): mixed
+    public function getMFSIPS(?string $sip_id = null)
     {
         if ($sip_id) {
             return $this->formatResponse($this->get("mf.sip.info", ["sip_id" => $sip_id]));
@@ -1111,7 +1112,7 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function getGTT(string $triggerId): mixed
+    public function getGTT(string $triggerId)
     {
         return $this->formatResponse($this->get("gtt.trigger_info", ["trigger_id" => $triggerId]));
     }
