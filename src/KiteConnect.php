@@ -18,7 +18,6 @@ use KiteConnect\Exception\NetworkException;
 use KiteConnect\Exception\OrderException;
 use KiteConnect\Exception\PermissionException;
 use KiteConnect\Exception\TokenException;
-use phpDocumentor\Reflection\Types\Mixed_;
 use stdClass;
 
 /**
@@ -386,7 +385,7 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function invalidateRefreshToken(string $refreshToken): Mixed_
+    public function invalidateRefreshToken(string $refreshToken)
     {
         return $this->delete("api.token.invalidate", [
             "refresh_token" => $refreshToken,
@@ -491,7 +490,7 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function modifyOrder(string $variety, string $orderId, array $params): Mixed_
+    public function modifyOrder(string $variety, string $orderId, array $params)
     {
         $params["variety"] = $variety;
         $params["order_id"] = $orderId;
