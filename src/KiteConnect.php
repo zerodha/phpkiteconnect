@@ -8,7 +8,6 @@ use Closure;
 use DateTime;
 use DateTimeZone;
 use Exception;
-use GuzzleHttp\Client;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\RequestException;
 use KiteConnect\Exception\DataException;
@@ -234,7 +233,7 @@ class KiteConnect
         $this->debug = $debug;
         $this->sessionHook = null;
         $this->timeout = $timeout;
-        $this->guzzleClient = $guzzleClient; 
+        $this->guzzleClient = $guzzleClient;
 
         if ($root) {
             $this->baseUrl = $root;
@@ -1492,7 +1491,7 @@ class KiteConnect
         if ($guzzleClient) {
             $client = $guzzleClient;
         } else {
-            $client = new Client(['headers' => $headers, 'timeout' => $this->timeout]);
+            $client = new GuzzleClient(['headers' => $headers, 'timeout' => $this->timeout]);
         }
 
         // declare http body array
@@ -1516,7 +1515,7 @@ class KiteConnect
             // fetch all error response field
             $response = $e->getResponse();
         }
-            
+
         $result = $response->getBody()->getContents();
 
         $response_headers = $response->getHeaders();
@@ -1533,7 +1532,7 @@ class KiteConnect
      * @throws Exception
      */
     private function parseInstrumentsToCSV(string $csv): array
-    {   
+    {
         $lines = explode("\n", $csv);
 
         $records = [];
