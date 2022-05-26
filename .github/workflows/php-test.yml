@@ -1,0 +1,29 @@
+name: Run Tests
+
+on: [push, pull_request]
+jobs:
+  test:
+    strategy:
+      matrix:
+        php-versions: ["8.0", "8.1"]
+        os: ["ubuntu-latest", "macos-latest"]
+        phpunit-versions: ["9.5.4"]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+
+      - name: Install composer dependencies
+        run: composer install --no-scripts
+
+      - name: Install PHPUnit
+        run: composer global require "phpunit/phpunit=${{ matrix.phpunit-versions }}"
+
+      - name: PHPUnit tests
+        run: ~/.composer/vendor/bin/phpunit tests

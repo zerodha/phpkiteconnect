@@ -85,6 +85,7 @@ class KiteConnect
     public const VARIETY_BO = "bo";
     public const VARIETY_CO = "co";
     public const VARIETY_AMO = "amo";
+    public const VARIETY_ICEBERG = "iceberg";
 
     // Transaction type
     public const TRANSACTION_TYPE_BUY = "BUY";
@@ -93,6 +94,7 @@ class KiteConnect
     // Validity
     public const VALIDITY_DAY = "DAY";
     public const VALIDITY_IOC = "IOC";
+    public const VALIDITY_TTL = "TTL";
 
     // Margins segments
     public const MARGIN_EQUITY = "equity";
@@ -449,6 +451,9 @@ class KiteConnect
      *                $params float|null  "squareoff" (Mandatory only for bracker orders) Square off value
      *                $params float|null  "stoploss" (Mandatory only for bracker orders) Stoploss value
      *                $params float|null  "trailing_stoploss" (Optional) Trailing stoploss value (only for bracket orders)
+     *                $params int|null    "validity_ttl" Order validity in minutes for TTL validity orders
+     *                $params int|null    "iceberg_legs" Total number of legs for iceberg order variety
+     *                $params int|null    "iceberg_quantity" Split quantity for each iceberg leg order
      *                $params float|null  "tag" (Optional) Order tag
      *                $params string|null "validity" (Optional) Order validity (DAY, IOC).
      * @return mixed|null
