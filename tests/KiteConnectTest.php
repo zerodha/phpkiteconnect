@@ -24,7 +24,7 @@ class KiteConnectTest extends TestCase
     {
         $kiteConnect = new KiteConnect('token');
         $actualLoginUrl = $kiteConnect->getLoginURL();
-        $expectedLoginUrl = 'https://kite.trade/connect/login?api_key=token&v=3';
+        $expectedLoginUrl = 'https://kite.zerodha.com/connect/login?api_key=token&v=3';
         $this->assertEquals($expectedLoginUrl, $actualLoginUrl);
     }
 

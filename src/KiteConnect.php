@@ -121,13 +121,16 @@ class KiteConnect
 
     public const VERSION = "3.2.0";
 
+    // Kite connect header version
+    private $kiteVersion = "3";
+
     // Default root API endpoint. It's possible to
     // override this by passing the `root` parameter during initialisation.
     /** @var String */
     private $baseUrl = "https://api.kite.trade";
 
     /** @var String */
-    private $loginUrl = "https://kite.trade/connect/login";
+    private $loginUrl = "https://kite.zerodha.com/connect/login";
 
     /** @var array */
     private static $dateFields = ["order_timestamp", "exchange_timestamp", "created", "last_instalment", "fill_timestamp", "timestamp", "last_trade_time"];
@@ -280,7 +283,7 @@ class KiteConnect
      */
     public function getLoginURL(): string
     {
-        return "{$this->loginUrl}?api_key={$this->apiKey}&v=3";
+        return "{$this->loginUrl}?api_key={$this->apiKey}&v={$this->kiteVersion}";
     }
 
     /**
