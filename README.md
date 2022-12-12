@@ -83,6 +83,15 @@ Refer to the [PHP client documentation](https://kite.trade/docs/phpkiteconnect/v
 phpunit tests/KiteConnectTest.php
 ```
 
+## Generate documentation
+
+```
+$ apt-get install wget
+$ wget https://phpdoc.org/phpDocumentor.phar
+$ chmod +x phpDocumentor.phar
+$ ./phpDocumentor.phar run -d ./src/ -t ./doc/
+```
+
 ## Changelog
 
 [Check CHANGELOG.md](CHANGELOG.md)
