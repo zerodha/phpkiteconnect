@@ -86,6 +86,7 @@ class KiteConnect
     public const VARIETY_CO = "co";
     public const VARIETY_AMO = "amo";
     public const VARIETY_ICEBERG = "iceberg";
+    public const VARIETY_AUCTION = "auction";
 
     // Transaction type
     public const TRANSACTION_TYPE_BUY = "BUY";
@@ -156,6 +157,7 @@ class KiteConnect
 
         "portfolio.positions" => "/portfolio/positions",
         "portfolio.holdings" => "/portfolio/holdings",
+        "portfolio.holdings.auction" => "/portfolio/holdings/auctions",
         "portfolio.positions.convert" => "/portfolio/positions",
 
         # MF api endpoints
@@ -454,6 +456,7 @@ class KiteConnect
      *                $params int|null    "validity_ttl" Order validity in minutes for TTL validity orders
      *                $params int|null    "iceberg_legs" Total number of legs for iceberg order variety
      *                $params int|null    "iceberg_quantity" Split quantity for each iceberg leg order
+     *                $params int|null "auction_number" A unique identifier for a particular auction
      *                $params float|null  "tag" (Optional) Order tag
      *                $params string|null "validity" (Optional) Order validity (DAY, IOC).
      * @return mixed|null
@@ -668,6 +671,23 @@ class KiteConnect
     public function getHoldings(): array
     {
         return $this->get("portfolio.holdings");
+    }
+
+    /**
+     * Retrieves list of available instruments for a auction session.
+     *
+     * @return array
+     * @throws DataException
+     * @throws GeneralException
+     * @throws InputException
+     * @throws NetworkException
+     * @throws OrderException
+     * @throws PermissionException
+     * @throws TokenException
+     */
+    public function getAuctionInstruments(): array
+    {
+        return $this->get("portfolio.holdings.auction");
     }
 
     /**
