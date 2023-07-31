@@ -475,6 +475,55 @@ class KiteConnectTest extends TestCase
 
     /** 
      * @depends initializeMock
+     * @test getVirtualContractNote
+    */
+    public function getVirtualContractNoteTest($kiteConnect): void
+    {
+        $orderParams = [[
+            "order_id" => "111111111",
+            "exchange" => "NSE",
+            "tradingsymbol" => "SBIN",
+            "transaction_type" => $kiteConnect::TRANSACTION_TYPE_BUY,
+            "variety" => $kiteConnect::VARIETY_REGULAR,
+            "product" => $kiteConnect::PRODUCT_CNC,
+            "order_type" => $kiteConnect::ORDER_TYPE_MARKET,
+            "quantity" => 1,
+            "average_price" => 560
+            ],
+            [
+            "order_id" => "2222222222",
+            "exchange" => "MCX",
+            "tradingsymbol" => "GOLDPETAL23JULFUT",
+            "transaction_type" => $kiteConnect::TRANSACTION_TYPE_SELL,
+            "variety" => $kiteConnect::VARIETY_REGULAR,
+            "product" => $kiteConnect::PRODUCT_NRML,
+            "order_type" => $kiteConnect::ORDER_TYPE_LIMIT,
+            "quantity" => 1,
+            "average_price" => 5862
+            ],
+            [
+            "order_id" => "3333333333",
+            "exchange" => "NFO",
+            "tradingsymbol" => "NIFTY2371317900PE",
+            "transaction_type" => $kiteConnect::TRANSACTION_TYPE_SELL,
+            "variety" => $kiteConnect::VARIETY_REGULAR,
+            "product" => $kiteConnect::PRODUCT_NRML,
+            "order_type" => $kiteConnect::ORDER_TYPE_LIMIT,
+            "quantity" => 100,
+            "average_price" => 1.5
+            ]
+        ];
+        $response = $kiteConnect->getVirtualContractNote($orderParams);
+
+        foreach ($response as $values) {
+            $this->assertObjectHasAttribute('charges',$values);
+            $this->assertObjectHasAttribute('transaction_type',$values);
+            $this->assertObjectHasAttribute('tradingsymbol',$values);
+        }
+    }
+
+    /** 
+     * @depends initializeMock
      * @test getInstruments 
     */
     public function getInstrumentsTest($kiteConnect): void
@@ -520,5 +569,4 @@ class KiteConnectTest extends TestCase
             $this->assertObjectHasAttribute('redemption_allowed',$values);
         }
     }
-    
 }

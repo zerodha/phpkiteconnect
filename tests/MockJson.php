@@ -35,7 +35,8 @@ class MockJson
             "mf_orders_info.json",
             "mf_sips.json",
             "mf_sip_info.json",
-            "mf_holdings.json"
+            "mf_holdings.json",
+            "virtual_contract_note.json",
         ]; 
         $response_array = array();
         foreach ($mock_files as $values) {
