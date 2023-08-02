@@ -154,6 +154,7 @@ class KiteConnect
         "order.cancel" => "/orders/{variety}/{order_id}",
         "order.trades" => "/orders/{order_id}/trades",
         "order.margins" => "/margins/orders",
+        "order.contract_note" => "/charges/orders",
 
         "portfolio.positions" => "/portfolio/positions",
         "portfolio.holdings" => "/portfolio/holdings",
@@ -608,6 +609,33 @@ class KiteConnect
     public function orderMargins(array $params): array
     {
         return $this->post("order.margins", (array)json_encode($params), 'application/json');
+    }
+
+    /**
+     * Fetch detailed charges order-wise for the order book
+     *
+     * @param array $params Order params to fetch charges detail
+     *              $params string       "order_id"  Unique order ID
+     *              $params string       "exchange" Name of the exchange(eg. NSE, BSE, NFO, CDS, MCX)
+     *              $params string       "tradingsymbol" Trading symbol of the instrument
+     *              $params string       "transaction_type" eg. BUY, SELL
+     *              $params string       "variety" Order variety (regular, amo, bo, co etc.)
+     *              $params string       "product" Margin product to use for the order
+     *              $params string       "order_type" Order type (MARKET, LIMIT etc.)
+     *              $params int          "quantity" Quantity of the order
+     *              $params float        "average_price" Average price at which the order was executed (Note: Should be non-zero).
+     * @return array
+     * @throws DataException
+     * @throws GeneralException
+     * @throws InputException
+     * @throws NetworkException
+     * @throws OrderException
+     * @throws PermissionException
+     * @throws TokenException
+     */
+    public function getVirtualContractNote(array $params): array
+    {
+        return $this->post("order.contract_note", (array)json_encode($params), 'application/json');
     }
 
     /**
