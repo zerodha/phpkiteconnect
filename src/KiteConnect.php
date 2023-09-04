@@ -839,7 +839,7 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function getLTP(array $instruments): mixed
+    public function getLTP(array $instruments): stdClass
     {
         return $this->get("market.quote.ltp", ["i" => $instruments]);
     }
