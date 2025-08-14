@@ -1,35 +1,38 @@
 {
-	"status": "success",
-	"data": {
-		"user_id": "AB1234",
-		"user_type": "investor",
-		"email": "xxxyyy@gmail.com",
-		"user_name": "AxAx Bxx",
-		"user_shortname": "abc",
-		"broker": "ZERODHA",
-		"exchanges": [
-			"BSE",
-			"BFO",
-			"NFO",
-			"MCX",
-			"CDS",
-			"NSE"
-		],
-		"products": [
-			"BO",
-			"CNC",
-			"CO",
-			"MIS",
-			"NRML"
-		],
-		"order_types": [
-			"LIMIT",
-			"MARKET",
-			"SL",
-			"SL-M"
-		],
-		"meta": {
-			"demat_consent": "XXXX"
-		}
-	}
+  "status": "success",
+  "data": {
+    "user_id": "AB1234",
+    "user_type": "individual",
+    "email": "xxxyyy@gmail.com",
+    "user_name": "AxAx Bxx",
+    "user_shortname": "AxAx",
+    "broker": "ZERODHA",
+    "exchanges": [
+      "BFO",
+      "MCX",
+      "NSE",
+      "CDS",
+      "BSE",
+      "BCD",
+      "MF",
+      "NFO"
+    ],
+    "products": [
+      "CNC",
+      "NRML",
+      "MIS",
+      "BO",
+      "CO"
+    ],
+    "order_types": [
+      "MARKET",
+      "LIMIT",
+      "SL",
+      "SL-M"
+    ],
+    "avatar_url": null,
+    "meta": {
+      "demat_consent": "physical"
+    }
+  }
 }

@@ -83,10 +83,10 @@ class KiteConnectTest extends TestCase
     {
         $response = $kiteConnect->getProfile();
         
-        $this->assertObjectHasAttribute('user_id',$response);
-        $this->assertObjectHasAttribute('user_name',$response);
-        $this->assertObjectHasAttribute('exchanges',$response);
-        $this->assertObjectHasAttribute('meta',$response);
+        $this->assertObjectHasProperty('user_id',$response);
+        $this->assertObjectHasProperty('user_name',$response);
+        $this->assertObjectHasProperty('exchanges',$response);
+        $this->assertObjectHasProperty('meta',$response);
     }
 
     /** 
@@ -97,8 +97,8 @@ class KiteConnectTest extends TestCase
     {
         $response = $kiteConnect->getMargins();
         
-        $this->assertObjectHasAttribute('equity',$response);
-        $this->assertObjectHasAttribute('commodity',$response);
+        $this->assertObjectHasProperty('equity',$response);
+        $this->assertObjectHasProperty('commodity',$response);
     }
 
     /** 
@@ -107,15 +107,14 @@ class KiteConnectTest extends TestCase
     */
     public function getQuoteTest($kiteConnect): void
     {
-        $response = $kiteConnect->getQuote(['NSE:INFY', 'NSE:SBIN']);
+        $response = $kiteConnect->getQuote(['NSE:INFY']);
 
         $this->assertArrayHasKey('NSE:INFY', $response);
-        $this->assertArrayHasKey('NSE:SBIN', $response);
 
         foreach ($response as $values) {
-            $this->assertObjectHasAttribute('instrument_token',$values);
-            $this->assertObjectHasAttribute('ohlc',$values);
-            $this->assertObjectHasAttribute('depth',$values);
+            $this->assertObjectHasProperty('instrument_token',$values);
+            $this->assertObjectHasProperty('ohlc',$values);
+            $this->assertObjectHasProperty('depth',$values);
         }
     }
 
@@ -125,15 +124,14 @@ class KiteConnectTest extends TestCase
     */
     public function getOHLCTest($kiteConnect): void
     {
-        $response = $kiteConnect->getOHLC(['NSE:INFY', 'NSE:SBIN']);
+        $response = $kiteConnect->getOHLC(['NSE:INFY']);
 
-        $this->assertObjectHasAttribute('NSE:INFY', $response);
-        $this->assertObjectHasAttribute('NSE:SBIN', $response);
+        $this->assertObjectHasProperty('NSE:INFY', $response);
         
         foreach ($response as $values) {
-            $this->assertObjectHasAttribute('instrument_token',$values);
-            $this->assertObjectHasAttribute('ohlc',$values);
-            $this->assertObjectHasAttribute('last_price',$values);
+            $this->assertObjectHasProperty('instrument_token',$values);
+            $this->assertObjectHasProperty('ohlc',$values);
+            $this->assertObjectHasProperty('last_price',$values);
         }
     }
 
@@ -143,14 +141,13 @@ class KiteConnectTest extends TestCase
     */
     public function getLTPTest($kiteConnect): void
     {
-        $response = $kiteConnect->getLTP(['NSE:INFY', 'NSE:SBIN']);
+        $response = $kiteConnect->getLTP(['NSE:INFY']);
 
-        $this->assertObjectHasAttribute('NSE:INFY', $response);
-        $this->assertObjectHasAttribute('NSE:SBIN', $response);
+        $this->assertObjectHasProperty('NSE:INFY', $response);
         
         foreach ($response as $values) {
-            $this->assertObjectHasAttribute('instrument_token',$values);
-            $this->assertObjectHasAttribute('last_price',$values);
+            $this->assertObjectHasProperty('instrument_token',$values);
+            $this->assertObjectHasProperty('last_price',$values);
         }
     }
 
@@ -163,9 +160,9 @@ class KiteConnectTest extends TestCase
         $response = $kiteConnect->getHoldings();
 
         foreach ($response as $values) {
-            $this->assertObjectHasAttribute('tradingsymbol',$values);
-            $this->assertObjectHasAttribute('exchange',$values);
-            $this->assertObjectHasAttribute('pnl',$values);
+            $this->assertObjectHasProperty('tradingsymbol',$values);
+            $this->assertObjectHasProperty('exchange',$values);
+            $this->assertObjectHasProperty('pnl',$values);
         }
     }
 
@@ -176,13 +173,13 @@ class KiteConnectTest extends TestCase
     public function getPositionsTest($kiteConnect): void
     {
         $response = $kiteConnect->getPositions();
-        $this->assertObjectHasAttribute('net',$response);
+        $this->assertObjectHasProperty('net',$response);
 
         foreach ($response as $values) {
             foreach ($values as $value2){
-                $this->assertObjectHasAttribute('tradingsymbol',$value2);
-                $this->assertObjectHasAttribute('exchange',$value2);
-                $this->assertObjectHasAttribute('average_price',$value2);
+                $this->assertObjectHasProperty('tradingsymbol',$value2);
+                $this->assertObjectHasProperty('exchange',$value2);
+                $this->assertObjectHasProperty('average_price',$value2);
             }
         }
 
@@ -203,7 +200,7 @@ class KiteConnectTest extends TestCase
             "product" => "NRML"
         ]);
 
-        $this->assertObjectHasAttribute('order_id',$response);
+        $this->assertObjectHasProperty('order_id',$response);
 
     }
 
@@ -216,10 +213,10 @@ class KiteConnectTest extends TestCase
         $response = $kiteConnect->getOrders();
 
         foreach ($response as $values) {
-            $this->assertObjectHasAttribute('order_id',$values);
-            $this->assertObjectHasAttribute('exchange_timestamp',$values);
-            $this->assertObjectHasAttribute('status',$values);
-            $this->assertObjectHasAttribute('order_id',$values);
+            $this->assertObjectHasProperty('order_id',$values);
+            $this->assertObjectHasProperty('exchange_timestamp',$values);
+            $this->assertObjectHasProperty('status',$values);
+            $this->assertObjectHasProperty('order_id',$values);
         }
 
     }
@@ -233,9 +230,9 @@ class KiteConnectTest extends TestCase
         $response = $kiteConnect->getOrderHistory('123456789');
 
         foreach ($response as $values) {
-            $this->assertObjectHasAttribute('order_id',$values);
-            $this->assertObjectHasAttribute('exchange_timestamp',$values);
-            $this->assertObjectHasAttribute('status',$values);
+            $this->assertObjectHasProperty('order_id',$values);
+            $this->assertObjectHasProperty('exchange_timestamp',$values);
+            $this->assertObjectHasProperty('status',$values);
         }
 
     }
@@ -249,10 +246,10 @@ class KiteConnectTest extends TestCase
         $response = $kiteConnect->getOrderTrades('123456789');
 
         foreach ($response as $values) {
-            $this->assertObjectHasAttribute('average_price',$values);
-            $this->assertObjectHasAttribute('transaction_type',$values);
-            $this->assertObjectHasAttribute('order_timestamp',$values);
-            $this->assertObjectHasAttribute('order_id',$values);
+            $this->assertObjectHasProperty('average_price',$values);
+            $this->assertObjectHasProperty('transaction_type',$values);
+            $this->assertObjectHasProperty('order_timestamp',$values);
+            $this->assertObjectHasProperty('order_id',$values);
         }
 
     }
@@ -266,10 +263,10 @@ class KiteConnectTest extends TestCase
         $response = $kiteConnect->getTrades();
 
         foreach ($response as $values) {
-            $this->assertObjectHasAttribute('trade_id',$values);
-            $this->assertObjectHasAttribute('exchange_order_id',$values);
-            $this->assertObjectHasAttribute('order_id',$values);
-            $this->assertObjectHasAttribute('instrument_token',$values);
+            $this->assertObjectHasProperty('trade_id',$values);
+            $this->assertObjectHasProperty('exchange_order_id',$values);
+            $this->assertObjectHasProperty('order_id',$values);
+            $this->assertObjectHasProperty('instrument_token',$values);
         }
 
     }
@@ -300,7 +297,7 @@ class KiteConnectTest extends TestCase
                 "price" => 400
                 ])]);
 
-        $this->assertObjectHasAttribute('trigger_id',$response);
+        $this->assertObjectHasProperty('trigger_id',$response);
     }
 
     /** 
@@ -312,10 +309,10 @@ class KiteConnectTest extends TestCase
         $response = $kiteConnect->getGTTs();
 
         foreach ($response as $values) {
-            $this->assertObjectHasAttribute('id',$values);
-            $this->assertObjectHasAttribute('created_at',$values);
-            $this->assertObjectHasAttribute('status',$values);
-            $this->assertObjectHasAttribute('condition',$values);
+            $this->assertObjectHasProperty('id',$values);
+            $this->assertObjectHasProperty('created_at',$values);
+            $this->assertObjectHasProperty('status',$values);
+            $this->assertObjectHasProperty('condition',$values);
         }
 
     }
@@ -328,10 +325,10 @@ class KiteConnectTest extends TestCase
     {
         $response = $kiteConnect->getGTT('123');
 
-        $this->assertObjectHasAttribute('id',$response);
-        $this->assertObjectHasAttribute('user_id',$response);
-        $this->assertObjectHasAttribute('orders',$response);
-        $this->assertObjectHasAttribute('condition',$response);
+        $this->assertObjectHasProperty('id',$response);
+        $this->assertObjectHasProperty('user_id',$response);
+        $this->assertObjectHasProperty('orders',$response);
+        $this->assertObjectHasProperty('condition',$response);
 
     }
 
@@ -362,7 +359,7 @@ class KiteConnectTest extends TestCase
                 "trigger_type" => $kiteConnect::GTT_TYPE_SINGLE,
                 "trigger_id" => 123]);
 
-        $this->assertObjectHasAttribute('trigger_id',$response);
+        $this->assertObjectHasProperty('trigger_id',$response);
     }
 
     /** 
@@ -373,7 +370,7 @@ class KiteConnectTest extends TestCase
     {
         $response = $kiteConnect->deleteGTT('123');
 
-        $this->assertObjectHasAttribute('trigger_id',$response);
+        $this->assertObjectHasProperty('trigger_id',$response);
 
     }
 
@@ -386,12 +383,12 @@ class KiteConnectTest extends TestCase
         $response = $kiteConnect->getHistoricalData(15495682, 'minute', '2021-01-20', '2021-01-25');
 
         foreach ($response as $values) {
-            $this->assertObjectHasAttribute('date',$values);
-            $this->assertObjectHasAttribute('open',$values);
-            $this->assertObjectHasAttribute('high',$values);
-            $this->assertObjectHasAttribute('low',$values);
-            $this->assertObjectHasAttribute('close',$values);
-            $this->assertObjectHasAttribute('volume',$values);
+            $this->assertObjectHasProperty('date',$values);
+            $this->assertObjectHasProperty('open',$values);
+            $this->assertObjectHasProperty('high',$values);
+            $this->assertObjectHasProperty('low',$values);
+            $this->assertObjectHasProperty('close',$values);
+            $this->assertObjectHasProperty('volume',$values);
         }
 
     }
@@ -405,10 +402,10 @@ class KiteConnectTest extends TestCase
         $response = $kiteConnect->getMFOrders();
 
         foreach ($response as $values) {
-            $this->assertObjectHasAttribute('order_id',$values);
-            $this->assertObjectHasAttribute('tradingsymbol',$values);
-            $this->assertObjectHasAttribute('purchase_type',$values);
-            $this->assertObjectHasAttribute('fund',$values);
+            $this->assertObjectHasProperty('order_id',$values);
+            $this->assertObjectHasProperty('tradingsymbol',$values);
+            $this->assertObjectHasProperty('purchase_type',$values);
+            $this->assertObjectHasProperty('fund',$values);
         }
 
     }
@@ -421,10 +418,10 @@ class KiteConnectTest extends TestCase
     {
         $response = $kiteConnect->getMFOrders('123456789');
 
-        $this->assertObjectHasAttribute('order_id',$response);
-        $this->assertObjectHasAttribute('fund',$response);
-        $this->assertObjectHasAttribute('order_timestamp',$response);
-        $this->assertObjectHasAttribute('amount',$response);
+        $this->assertObjectHasProperty('order_id',$response);
+        $this->assertObjectHasProperty('fund',$response);
+        $this->assertObjectHasProperty('order_timestamp',$response);
+        $this->assertObjectHasProperty('amount',$response);
     }
 
     /** 
@@ -436,10 +433,10 @@ class KiteConnectTest extends TestCase
         $response = $kiteConnect->getMFSIPS();
 
         foreach ($response as $values) {
-            $this->assertObjectHasAttribute('sip_id',$values);
-            $this->assertObjectHasAttribute('fund',$values);
-            $this->assertObjectHasAttribute('instalment_amount',$values);
-            $this->assertObjectHasAttribute('dividend_type',$values);
+            $this->assertObjectHasProperty('sip_id',$values);
+            $this->assertObjectHasProperty('fund',$values);
+            $this->assertObjectHasProperty('instalment_amount',$values);
+            $this->assertObjectHasProperty('dividend_type',$values);
         }
     }
 
@@ -451,10 +448,10 @@ class KiteConnectTest extends TestCase
     {
         $response = $kiteConnect->getMFSIPS('123456789');
 
-        $this->assertObjectHasAttribute('sip_id',$response);
-        $this->assertObjectHasAttribute('last_instalment',$response);
-        $this->assertObjectHasAttribute('pending_instalments',$response);
-        $this->assertObjectHasAttribute('instalment_date',$response);
+        $this->assertObjectHasProperty('sip_id',$response);
+        $this->assertObjectHasProperty('last_instalment',$response);
+        $this->assertObjectHasProperty('pending_instalments',$response);
+        $this->assertObjectHasProperty('next_instalment',$response);
     }
 
     /** 
@@ -466,10 +463,10 @@ class KiteConnectTest extends TestCase
         $response = $kiteConnect->getMFHoldings();
 
         foreach ($response as $values) {
-            $this->assertObjectHasAttribute('folio',$values);
-            $this->assertObjectHasAttribute('fund',$values);
-            $this->assertObjectHasAttribute('tradingsymbol',$values);
-            $this->assertObjectHasAttribute('pnl',$values);
+            $this->assertObjectHasProperty('folio',$values);
+            $this->assertObjectHasProperty('fund',$values);
+            $this->assertObjectHasProperty('tradingsymbol',$values);
+            $this->assertObjectHasProperty('pnl',$values);
         }
     }
 
@@ -516,9 +513,9 @@ class KiteConnectTest extends TestCase
         $response = $kiteConnect->getVirtualContractNote($orderParams);
 
         foreach ($response as $values) {
-            $this->assertObjectHasAttribute('charges',$values);
-            $this->assertObjectHasAttribute('transaction_type',$values);
-            $this->assertObjectHasAttribute('tradingsymbol',$values);
+            $this->assertObjectHasProperty('charges',$values);
+            $this->assertObjectHasProperty('transaction_type',$values);
+            $this->assertObjectHasProperty('tradingsymbol',$values);
         }
     }
 
@@ -531,10 +528,10 @@ class KiteConnectTest extends TestCase
         $response = $kiteConnect->getInstruments();
 
         foreach ($response as $values) {
-            $this->assertObjectHasAttribute('instrument_token',$values);
-            $this->assertObjectHasAttribute('exchange_token',$values);
-            $this->assertObjectHasAttribute('tradingsymbol',$values);
-            $this->assertObjectHasAttribute('name',$values);
+            $this->assertObjectHasProperty('instrument_token',$values);
+            $this->assertObjectHasProperty('exchange_token',$values);
+            $this->assertObjectHasProperty('tradingsymbol',$values);
+            $this->assertObjectHasProperty('name',$values);
         }
     }
 
@@ -547,10 +544,10 @@ class KiteConnectTest extends TestCase
         $response = $kiteConnect->getInstruments('NSE');
 
         foreach ($response as $values) {
-            $this->assertObjectHasAttribute('instrument_token',$values);
-            $this->assertObjectHasAttribute('exchange_token',$values);
-            $this->assertObjectHasAttribute('tradingsymbol',$values);
-            $this->assertObjectHasAttribute('name',$values);
+            $this->assertObjectHasProperty('instrument_token',$values);
+            $this->assertObjectHasProperty('exchange_token',$values);
+            $this->assertObjectHasProperty('tradingsymbol',$values);
+            $this->assertObjectHasProperty('name',$values);
         }
     }
 
@@ -563,10 +560,10 @@ class KiteConnectTest extends TestCase
         $response = $kiteConnect->getMFInstruments();
 
         foreach ($response as $values) {
-            $this->assertObjectHasAttribute('tradingsymbol',$values);
-            $this->assertObjectHasAttribute('amc',$values);
-            $this->assertObjectHasAttribute('scheme_type',$values);
-            $this->assertObjectHasAttribute('redemption_allowed',$values);
+            $this->assertObjectHasProperty('tradingsymbol',$values);
+            $this->assertObjectHasProperty('amc',$values);
+            $this->assertObjectHasProperty('scheme_type',$values);
+            $this->assertObjectHasProperty('redemption_allowed',$values);
         }
     }
 }

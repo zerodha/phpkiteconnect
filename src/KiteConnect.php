@@ -17,7 +17,6 @@ use KiteConnect\Exception\NetworkException;
 use KiteConnect\Exception\OrderException;
 use KiteConnect\Exception\PermissionException;
 use KiteConnect\Exception\TokenException;
-use phpDocumentor\Reflection\Types\Mixed_;
 use stdClass;
 
 /**
@@ -49,7 +48,7 @@ use stdClass;
  * use one instance to manage many users.
  * Hence, in your web application, typically:
  * - You will initialise an instance of the Kite client
- * - Redirect the user to the `login_url()`
+ * - Redirect the user to the `getLoginURL()`
  * - At the redirect url endpoint, obtain the
  * `request_token` from the query parameters
  * - Initialise a new instance of Kite client,
@@ -208,6 +207,9 @@ class KiteConnect
 
     /** @var Closure */
     private $sessionHook;
+
+    /** @var \GuzzleHttp\Client|null */
+    private ?\GuzzleHttp\Client $guzzleClient;
 
     /**
      * Initialise a new Kite Connect client instance.
@@ -390,7 +392,7 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function invalidateRefreshToken(string $refreshToken): Mixed_
+    public function invalidateRefreshToken(string $refreshToken): mixed
     {
         return $this->delete("api.token.invalidate", [
             "refresh_token" => $refreshToken,
@@ -499,7 +501,7 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function modifyOrder(string $variety, string $orderId, array $params): Mixed_
+    public function modifyOrder(string $variety, string $orderId, array $params): mixed
     {
         $params["variety"] = $variety;
         $params["order_id"] = $orderId;
@@ -1537,7 +1539,7 @@ class KiteConnect
      * @param array|null $params Array of key=>value request parameters.
      * @return array                    Returns an array with response "headers" and "body".
      */
-    private function guzzle(string $url, string $method, ?array $headers, $params = null, $guzzleClient = null): array
+    private function guzzle(string $url, string $method, ?array $headers, $params = null, ?\GuzzleHttp\Client $guzzleClient = null): array
     {
         // set header to Guzzle http client
         // mock patching isn't allowed in PHP

@@ -12,37 +12,38 @@ class MockJson
     {
         $status_code = 200;
         $header_content = ['Content-Type' => 'application/json'];
-        $mock_files = [
-            "profile.json",
-            "margins.json",
-            "quote.json",
-            "ohlc.json",
-            "ltp.json",
-            "holdings.json",
-            "positions.json",
-            "order_response.json",
-            "orders.json",
-            "order_info.json",
-            "order_trades.json",
-            "trades.json",
-            "gtt_place_order.json",
-            "gtt_get_orders.json",
-            "gtt_get_order.json",
-            "gtt_modify_order.json",
-            "gtt_delete_order.json",
-            "historical_minute.json",
-            "mf_orders.json",
-            "mf_orders_info.json",
-            "mf_sips.json",
-            "mf_sip_info.json",
-            "mf_holdings.json",
-            "virtual_contract_note.json",
-        ]; 
+        
         $response_array = array();
-        foreach ($mock_files as $values) {
-            $response_array[] = new Response($status_code, $header_content, $this->fetchMock($values));
-        }
-        // add all text/csv header based content-type response
+        
+        // Provide responses in the exact order that tests will consume them
+        // Based on test execution order and dependencies
+        
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("profile.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("margins.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("quote.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("ohlc.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("ltp.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("holdings.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("positions.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("order_response.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("orders.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("order_info.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("order_trades.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("trades.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("gtt_place_order.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("gtt_get_orders.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("gtt_get_order.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("gtt_modify_order.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("gtt_delete_order.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("historical_minute.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("mf_orders.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("mf_orders_info.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("mf_sips.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("mf_sip_info.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("mf_holdings.json"));
+        $response_array[] = new Response($status_code, $header_content, $this->fetchMock("virtual_contract_note.json"));
+        
+        // Add CSV responses
         $response_array[] = new Response($status_code, ['Content-Type' => 'text/csv'], $this->fetchMock("instruments_all.csv"));
         $response_array[] = new Response($status_code, ['Content-Type' => 'text/csv'], $this->fetchMock("instruments_nse.csv"));
         $response_array[] = new Response($status_code, ['Content-Type' => 'text/csv'], $this->fetchMock("mf_instruments.csv"));

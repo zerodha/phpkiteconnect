@@ -1,0 +1,79 @@
+{
+  "mode": "full",
+  "tradable": true,
+  "instrument_token": 408065,
+  "last_price": 1573.7,
+  "last_quantity": 7,
+  "average_price": 1570.37,
+  "volume": 1192471,
+  "buy_quantity": 256443,
+  "sell_quantity": 363009,
+  "ohlc": {
+    "open": 1569.15,
+    "high": 1575,
+    "low": 1561.05,
+    "close": 1567.8
+  },
+  "last_trade_time": "2021-07-05T10:41:27+05:30",
+  "oi": 0,
+  "oi_day_high": 0,
+  "oi_day_low": 0,
+  "timestamp": "2021-07-05T10:41:27+05:30",
+  "change": 5.900000000000091,
+  "depth": {
+    "buy": [
+      {
+        "price": 1573.4,
+        "quantity": 5,
+        "orders": 1
+      },
+      {
+        "price": 1573,
+        "quantity": 140,
+        "orders": 2
+      },
+      {
+        "price": 1572.95,
+        "quantity": 2,
+        "orders": 1
+      },
+      {
+        "price": 1572.9,
+        "quantity": 219,
+        "orders": 7
+      },
+      {
+        "price": 1572.85,
+        "quantity": 50,
+        "orders": 1
+      }
+    ],
+    "sell": [
+      {
+        "price": 1573.7,
+        "quantity": 172,
+        "orders": 3
+      },
+      {
+        "price": 1573.75,
+        "quantity": 44,
+        "orders": 3
+      },
+      {
+        "price": 1573.85,
+        "quantity": 302,
+        "orders": 3
+      },
+      {
+        "price": 1573.9,
+        "quantity": 141,
+        "orders": 2
+      },
+      {
+        "price": 1573.95,
+        "quantity": 724,
+        "orders": 5
+      }
+    ]
+  }
+}

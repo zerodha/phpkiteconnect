@@ -1,0 +1,18 @@
+{
+  "mode": "quote",
+  "tradable": true,
+  "instrument_token": 408065,
+  "last_price": 1573.15,
+  "last_quantity": 1,
+  "average_price": 1570.33,
+  "volume": 1175986,
+  "buy_quantity": 256511,
+  "sell_quantity": 360503,
+  "ohlc": {
+    "open": 1569.15,
+    "high": 1575,
+    "low": 1561.05,
+    "close": 1567.8
+  },
+  "change": 5.900000000000091
+}

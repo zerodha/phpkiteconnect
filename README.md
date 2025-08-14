@@ -5,7 +5,7 @@ The Official PHP client for communicating with the [Kite Connect API](https://ki
 Note: For PHP version < 8.0. You can refer to our [previous version](https://github.com/zerodha/phpkiteconnect/releases/tag/v3.0.0).  
 Kite Connect is a set of REST-like APIs that expose many capabilities required to build a complete investment and trading platform. Execute orders in real time, manage user portfolio and more, with the simple HTTP API collection.
 
-[Zerodha Technology](http://zerodha.com) (c) 2021. Licensed under the MIT License.
+[Zerodha Technology](http://zerodha.com) (c) 2025. Licensed under the MIT License.
 
 ## Documentation
 
@@ -40,7 +40,7 @@ Note: You can refer to our previous version [here](https://github.com/zerodha/ph
 
     // Assuming you have obtained the `request_token`
     // after the auth flow redirect by redirecting the
-    // user to $kite->login_url()
+    // user to $kite->getLoginURL()
     try {
         $user = $kite->generateSession("request_token_obtained", "your_api_secret");
         echo "Authentication successful. \n";
@@ -80,7 +80,7 @@ Refer to the [PHP client documentation](https://kite.trade/docs/phpkiteconnect/v
 ## Run unit tests
 
 ```
-phpunit tests/KiteConnectTest.php
+composer test
 ```
 
 ## Generate documentation
