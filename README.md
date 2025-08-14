@@ -22,7 +22,7 @@ Download `kiteconnect.php` and `include()` it in your application.
 
 	// Assuming you have obtained the `request_token`
 	// after the auth flow redirect by redirecting the
-	// user to $kite->login_url()
+	// user to $kite->getLoginURL()
 	try {
 		$user = $kite->generateSession("request_token_obtained", "your_api_secret");
 
