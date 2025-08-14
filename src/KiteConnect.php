@@ -1491,7 +1491,7 @@ class KiteConnect
         $request_headers = [
             "Content-Type" => $content_type,
             "User-Agent" => "phpkiteconnect/" . self::VERSION,
-            "X-Kite-Version" => 3,
+            "X-Kite-Version" => $this->kiteVersion,
         ];
 
         if ($this->apiKey && $this->accessToken) {

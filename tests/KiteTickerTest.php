@@ -17,7 +17,7 @@ class KiteTickerTest extends TestCase
     }
 
     /**
-     * Test LTP mode tick data - matches TypeScript ltpModeTick test
+     * Test LTP mode tick data
      */
     public function testLtpModeTick()
     {
@@ -35,7 +35,7 @@ class KiteTickerTest extends TestCase
     }
 
     /**
-     * Test Quote mode tick data - matches TypeScript quoteModeTick test
+     * Test Quote mode tick data
      */
     public function testQuoteModeTick()
     {
@@ -54,7 +54,7 @@ class KiteTickerTest extends TestCase
     }
 
     /**
-     * Test Full mode tick data - matches TypeScript fullModeTick test
+     * Test Full mode tick data
      */
     public function testFullModeTick()
     {
@@ -73,7 +73,7 @@ class KiteTickerTest extends TestCase
     }
 
     /**
-     * Read binary packets - matches TypeScript readBufferPacket function
+     * Read binary packets
      */
     private function readBufferPacket(string $fileName): string
     {
@@ -81,7 +81,7 @@ class KiteTickerTest extends TestCase
     }
 
     /**
-     * Convert buffer to binary buffer array - matches TypeScript toArrayBuffer function
+     * Convert buffer to binary buffer array
      */
     private function toArrayBuffer(string $tickerMode): string
     {
