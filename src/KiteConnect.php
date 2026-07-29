@@ -236,11 +236,11 @@ class KiteConnect
      */
     public function __construct(
         string $apiKey,
-        string $accessToken = null,
-        string $root = null,
+        ?string $accessToken = null,
+        ?string $root = null,
         bool $debug = false,
         int $timeout = 7,
-        \GuzzleHttp\Client $guzzleClient = null
+        ?\GuzzleHttp\Client $guzzleClient = null
     ) {
         $this->apiKey = $apiKey;
         $this->accessToken = $accessToken;
@@ -534,7 +534,7 @@ class KiteConnect
      * @throws PermissionException
      * @throws TokenException
      */
-    public function cancelOrder(string $variety, string $orderId, array $params = null)
+    public function cancelOrder(string $variety, string $orderId, ?array $params = null)
     {
         if (! $params) {
             $params = [];
@@ -1575,11 +1575,15 @@ class KiteConnect
         }
         try {
             $response = $client->request($method, $url, $body_array);
-        } catch(RequestException $e){
+        } catch (RequestException $e) {
             // fetch all error response field
             $response = $e->getResponse();
+
+            if ($response === null) {
+                throw new NetworkException($e->getMessage(), 0, $e);
+            }
         }
-            
+
         $result = $response->getBody()->getContents();
 
         $response_headers = $response->getHeaders();
@@ -1602,7 +1606,7 @@ class KiteConnect
         $records = [];
         $head = [];
         for ($count = 0; $count < count($lines); $count++) {
-            $colums = str_getcsv($lines[$count]);
+            $colums = str_getcsv($lines[$count], ",", "\"", "\\");
             if ($colums) {
                 if (count($colums) < 5) {
                     //why this condition is necessary ?
@@ -1649,7 +1653,7 @@ class KiteConnect
         $records = [];
         $head = [];
         for ($n = 0; $n < count($lines); $n++) {
-            if ($cols = @str_getcsv($lines[$n])) {
+            if ($cols = @str_getcsv($lines[$n], ",", "\"", "\\")) {
                 if (count($cols) < 5) {
                     continue;
                 }
@@ -1718,4 +1722,3 @@ class KiteConnect
         }
     }
 }
-?>
