@@ -33,6 +33,7 @@ class KiteTicker
         "mcx" => 7,
         "mcxsx" => 8,
         "indices" => 9,
+		"nco" => 12,
     ];
 
     // WebSocket connection states
@@ -667,7 +668,7 @@ class KiteTicker
         // Price divisor based on segment
         $divisor = match ($segment) {
             self::EXCHANGE_MAP["cds"] => 10000000.0,
-            self::EXCHANGE_MAP["bcd"] => 10000.0,
+            self::EXCHANGE_MAP["bcd"], self::EXCHANGE_MAP["nco"] => 10000.0,
             default => 100.0
         };
 
